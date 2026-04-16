@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Historial · Galamar III</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .hist-grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; padding: 20px 24px; align-items: start; }
+
+    .liq-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      cursor: pointer;
+      transition: all .12s;
+      border-left: 3px solid transparent;
+    }
+    .liq-card:hover    { border-left-color: var(--gold); background: var(--cream2); }
+    .liq-card.selected { border-left-color: var(--navy2); background: #f0f4ff; }
+
+    .liq-card-periodo { font-size: 14px; font-weight: 600; color: var(--navy); }
+    .liq-card-meta    { font-size: 11px; color: var(--muted); margin-top: 3px; display: flex; gap: 10px; }
+    .liq-card-nums    { display: flex; justify-content: space-between; margin-top: 10px; }
+    .liq-card-num     { text-align: center; }
+    .liq-card-num .val { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .liq-card-num .lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+    .detail-panel { position: sticky; top: 70px; display: flex; flex-direction: column; gap: 16px; }
+
+    .evol-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .evol-label { font-size: 11px; color: var(--muted); width: 90px; flex-shrink: 0; }
+    .evol-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .evol-fill-green { height: 100%; background: var(--green); border-radius: 3px; transition: width .4s; }
+    .evol-fill-red   { height: 100%; background: var(--red);   border-radius: 3px; transition: width .4s; }
+    .evol-val { font-size: 11px; font-weight: 600; width: 90px; text-align: right; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-title">Galamar III · Expensas</span>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Principal</div>
+        <a class="nav-link" href="index.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" href="liquidacion.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8"/></svg>
+          Liquidación
+        </a>
+        <a class="nav-link" href="banco.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1M3 6l9-3 9 3v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+          Resumen Bancario
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gestión</div>
+        <a class="nav-link active" href="historial.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Historial
+        </a>
+        <a class="nav-link" href="config.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Configuración
+        </a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <h1>Historial</h1>
+          <p>Liquidaciones anteriores, evolución financiera y descarga de datos</p>
+        </div>
+        <a href="liquidacion.html" class="btn btn-primary btn-sm">
+          + Nueva liquidación
+        </a>
+      </div>
+
+      <div id="contenido">
+        <div class="page-loader">Cargando historial...</div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal deuda por unidad en un período -->
+<div class="modal-overlay" id="modalUnidad">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h3 id="modalUnidadTitle">Evolución de la unidad</h3>
+      <button class="modal-close" onclick="cerrarModalUnidad()">✕</button>
+    </div>
+    <div class="modal-body" id="modalUnidadBody" style="max-height:460px;overflow-y:auto;padding:0">
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/config.js"></script>
+<script>
+  let liquidaciones = [];
+  let unidades      = [];
+  let selLiq        = null;
+  let saldosCache   = {};   // { liquidacion_id: [saldos] }
+  let gastosCache   = {};   // { liquidacion_id: [gastos] }
+
+  async function init() {
+    try {
+      [liquidaciones, unidades] = await Promise.all([
+        SB.get('liquidaciones', 'order=periodo.desc'),
+        SB.get('unidades', 'order=orden.asc&activa=eq.true')
+      ]);
+
+      if (!liquidaciones.length) {
+        document.getElementById('contenido').innerHTML = `
+          <div class="section">
+            <div class="empty-state">
+              <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <h3>Sin liquidaciones aún</h3>
+              <p>Creá la primera desde la página de Liquidación</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      renderLayout();
+      seleccionarLiq(liquidaciones[0]);
+
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  function renderLayout() {
+    document.getElementById('contenido').innerHTML = `
+      <div class="hist-grid">
+        <div>
+          <div class="section-title" style="padding:0 0 12px">
+            ${liquidaciones.length} liquidación${liquidaciones.length !== 1 ? 'es' : ''}
+          </div>
+          <div id="listaLiqs" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+        <div class="detail-panel" id="detailPanel">
+          <div class="empty-state">
+            <p>Seleccioná una liquidación para ver el detalle</p>
+          </div>
+        </div>
+      </div>`;
+
+    renderListaLiqs();
+  }
+
+  function renderListaLiqs() {
+    const lista = document.getElementById('listaLiqs');
+    lista.innerHTML = liquidaciones.map(l => {
+      const titulo = fmtPeriodo(l.periodo).replace(/^\w/, c => c.toUpperCase());
+      const isSelected = selLiq?.id === l.id;
+      return `<div class="liq-card ${isSelected ? 'selected' : ''}" onclick="seleccionarLiq(${JSON.stringify(l).replace(/"/g,'&quot;')})">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div class="liq-card-periodo">${titulo}</div>
+          <span class="estado-tag ${l.estado === 'publicada' ? 'estado-publicada' : 'estado-borrador'}">${l.estado}</span>
+        </div>
+        <div class="liq-card-meta">
+          <span>Vto: ${l.fecha_vencimiento ? formatFecha(l.fecha_vencimiento) : '—'}</span>
+        </div>
+        <div class="liq-card-nums">
+          <div class="liq-card-num">
+            <div class="val" style="color:var(--green)">${fmt$(l.total_ingresos || 0)}</div>
+            <div class="lbl">Ingresos</div>
+          </div>
+          <div class="liq-card-num">
+            <div class="val" style="color:var(--red)">${fmt$(l.total_egresos || 0)}</div>
+            <div class="lbl">Egresos</div>
+          </div>
+          <div class="liq-card-num">
+            <div class="val">${fmt$(l.saldo_caja_final || 0)}</div>
+            <div class="lbl">Saldo caja</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function seleccionarLiq(liq) {
+    // Parsear si viene como string (desde onclick)
+    if (typeof liq === 'string') liq = JSON.parse(liq);
+    selLiq = liq;
+    renderListaLiqs();
+
+    const panel = document.getElementById('detailPanel');
+    panel.innerHTML = `<div class="page-loader" style="height:120px">Cargando detalle...</div>`;
+
+    // Cargar saldos y gastos si no están en caché
+    if (!saldosCache[liq.id]) {
+      saldosCache[liq.id] = await SB.get('saldos_mensuales',
+        `liquidacion_id=eq.${liq.id}&select=*,unidades(codigo,propietario,cocheras)`);
+    }
+    if (!gastosCache[liq.id]) {
+      gastosCache[liq.id] = await SB.get('gastos',
+        `liquidacion_id=eq.${liq.id}&order=categoria.asc`);
+    }
+
+    renderDetalle(liq, saldosCache[liq.id], gastosCache[liq.id]);
+  }
+
+  function renderDetalle(liq, saldos, gastos) {
+    const titulo    = fmtPeriodo(liq.periodo).replace(/^\w/, c => c.toUpperCase());
+    const totalDeudasPend = saldos.filter(s => s.saldo_final > 0).reduce((a, s) => a + parseFloat(s.saldo_final), 0);
+    const deudores  = saldos.filter(s => parseFloat(s.saldo_final) > 0);
+    const alDia     = saldos.filter(s => parseFloat(s.saldo_final) <= 0);
+    const totalEgresos = gastos.reduce((a, g) => a + parseFloat(g.monto), 0);
+    const maxEgreso = Math.max(...gastos.map(g => parseFloat(g.monto)), 1);
+
+    document.getElementById('detailPanel').innerHTML = `
+
+      <!-- Cards resumen -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="card green" style="padding:14px 16px">
+          <div class="card-label">Cobrado</div>
+          <div class="card-value" style="font-size:18px">${fmt$(liq.total_ingresos || 0)}</div>
+        </div>
+        <div class="card red" style="padding:14px 16px">
+          <div class="card-label">Egresos</div>
+          <div class="card-value" style="font-size:18px">${fmt$(liq.total_egresos || 0)}</div>
+        </div>
+        <div class="card navy" style="padding:14px 16px">
+          <div class="card-label">Saldo en caja</div>
+          <div class="card-value" style="font-size:18px">${fmt$(liq.saldo_caja_final || 0)}</div>
+        </div>
+        <div class="card ${totalDeudasPend > 0 ? 'red' : 'green'}" style="padding:14px 16px">
+          <div class="card-label">Deuda total</div>
+          <div class="card-value" style="font-size:18px">${fmt$(totalDeudasPend)}</div>
+          <div class="card-sub">${deudores.length} unidad${deudores.length !== 1 ? 'es' : ''} adeudando</div>
+        </div>
+      </div>
+
+      <!-- Unidades deudoras -->
+      ${deudores.length ? `
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Deudores al cierre</span>
+          <span style="font-size:11px;color:var(--red);font-weight:600">${deudores.length} unidades</span>
+        </div>
+        <div style="padding:0 4px">
+          <table>
+            <thead><tr>
+              <th>Unidad</th><th>Propietario</th><th class="num">Saldo</th><th class="num">Intereses</th>
+            </tr></thead>
+            <tbody>
+              ${deudores.sort((a,b) => b.saldo_final - a.saldo_final).map(s => `
+                <tr style="cursor:pointer" onclick="verEvolucion('${s.unidades?.codigo}')">
+                  <td><strong>${s.unidades?.codigo || '—'}</strong></td>
+                  <td style="color:var(--muted)">${s.unidades?.propietario || '—'}</td>
+                  <td class="num" style="color:var(--red);font-weight:600">${fmt$(s.saldo_final)}</td>
+                  <td class="num" style="color:var(--amber)">${s.punitorios > 0 ? fmt$(s.punitorios) : '—'}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>` : `
+      <div class="panel">
+        <div class="panel-body" style="text-align:center;color:var(--green);padding:20px">
+          <strong>✓ Todas las unidades al día</strong>
+        </div>
+      </div>`}
+
+      <!-- Egresos del período -->
+      <div class="panel">
+        <div class="panel-header" style="justify-content:space-between">
+          <span class="panel-title">Egresos del período</span>
+          <strong style="font-size:13px;color:var(--navy)">${fmt$(totalEgresos)}</strong>
+        </div>
+        <div style="padding:12px 16px;display:flex;flex-direction:column;gap:10px">
+          ${gastos.map(g => `
+            <div class="evol-bar">
+              <span class="evol-label" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(g.proveedor)}">${esc(g.proveedor)}</span>
+              <div class="evol-track">
+                <div class="evol-fill-red" style="width:${(parseFloat(g.monto)/maxEgreso*100).toFixed(1)}%"></div>
+              </div>
+              <span class="evol-val" style="color:var(--red)">${fmt$(g.monto)}</span>
+            </div>`).join('') || '<p style="color:var(--muted);font-size:12px;text-align:center">Sin egresos registrados</p>'}
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div style="display:flex;gap:8px">
+        <a href="liquidacion.html" class="btn btn-outline btn-sm" style="flex:1;justify-content:center">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </a>
+        <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" onclick="cambiarEstado('${liq.id}','${liq.estado}')">
+          ${liq.estado === 'publicada' ? '↩ Volver a borrador' : '✓ Publicar'}
+        </button>
+        <button class="btn btn-danger btn-sm btn-icon" title="Eliminar liquidación" onclick="eliminarLiq('${liq.id}')">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+      </div>
+    `;
+  }
+
+  // ── Evolución de una unidad en el tiempo ─────────────────────
+  async function verEvolucion(codigo) {
+    if (!codigo) return;
+
+    const u = unidades.find(x => x.codigo === codigo);
+    document.getElementById('modalUnidadTitle').textContent =
+      `${codigo}${u?.propietario ? ' · ' + u.propietario : ''} — Evolución histórica`;
+
+    document.getElementById('modalUnidad').classList.add('open');
+    document.getElementById('modalUnidadBody').innerHTML = `<div class="page-loader" style="height:120px">Cargando...</div>`;
+
+    // Cargar todos los saldos de esa unidad
+    const historico = await SB.get('saldos_mensuales',
+      `unidad_id=eq.${u.id}&order=periodo.asc&select=*,liquidaciones(periodo,estado)`);
+
+    if (!historico.length) {
+      document.getElementById('modalUnidadBody').innerHTML = `<div class="empty-state"><p>Sin historial para esta unidad</p></div>`;
+      return;
+    }
+
+    document.getElementById('modalUnidadBody').innerHTML = `
+      <table style="width:100%">
+        <thead>
+          <tr>
+            <th>Período</th>
+            <th class="num">Expensa</th>
+            <th class="num">Pagos</th>
+            <th class="num">Intereses</th>
+            <th class="num">Saldo final</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${historico.map(h => {
+            const sf = parseFloat(h.saldo_final || 0);
+            return `<tr>
+              <td style="font-weight:600">${fmtPeriodo(h.periodo).replace(/^\w/, c=>c.toUpperCase())}</td>
+              <td class="num">${fmt$(h.expensa_mes || 0)}</td>
+              <td class="num" style="color:var(--green)">${parseFloat(h.pagos||0) > 0 ? fmt$(h.pagos) : '—'}</td>
+              <td class="num" style="color:var(--amber)">${parseFloat(h.punitorios||0) > 0 ? fmt$(h.punitorios) : '—'}</td>
+              <td class="num" style="font-weight:700;color:${sf > 0 ? 'var(--red)' : sf < 0 ? 'var(--green)' : 'var(--text)'}">${fmt$(sf)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function cerrarModalUnidad() { document.getElementById('modalUnidad').classList.remove('open'); }
+
+  // ── Cambiar estado ────────────────────────────────────────────
+  async function cambiarEstado(id, estadoActual) {
+    const nuevo = estadoActual === 'publicada' ? 'borrador' : 'publicada';
+    try {
+      await SB.patch('liquidaciones', id, { estado: nuevo });
+      const l = liquidaciones.find(x => x.id === id);
+      if (l) l.estado = nuevo;
+      selLiq = { ...selLiq, estado: nuevo };
+      renderListaLiqs();
+      renderDetalle(selLiq, saldosCache[id] || [], gastosCache[id] || []);
+      toast(`Liquidación ${nuevo === 'publicada' ? 'publicada' : 'vuelta a borrador'}`, 'success');
+    } catch (err) { toast('Error: ' + err.message, 'error'); }
+  }
+
+  // ── Eliminar liquidación ──────────────────────────────────────
+  async function eliminarLiq(id) {
+    if (!confirm('¿Eliminar esta liquidación y todos sus datos? Esta acción no se puede deshacer.')) return;
+    try {
+      await SB.delete('liquidaciones', id);
+      liquidaciones = liquidaciones.filter(l => l.id !== id);
+      delete saldosCache[id];
+      delete gastosCache[id];
+      selLiq = liquidaciones[0] || null;
+      renderLayout();
+      if (selLiq) seleccionarLiq(selLiq);
+      toast('Liquidación eliminada', 'success');
+    } catch (err) { toast('Error: ' + err.message, 'error'); }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────
+  function formatFecha(str) {
+    if (!str) return '—';
+    const d = new Date(str + 'T12:00:00');
+    return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalUnidad(); });
+
+  init();
+</script>
+</body>
+</html>
