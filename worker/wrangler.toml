@@ -1,0 +1,10 @@
+name = "expensas-galamar"
+main = "index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+APP_SECRET = "GalamarExpensas2026"
+
+# Secrets (configurar con: wrangler secret put GEMINI_API_KEY)
+# GEMINI_API_KEY = "..."

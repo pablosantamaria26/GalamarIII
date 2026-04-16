@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liquidación · Galamar III</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .two-col { display: grid; grid-template-columns: 1fr 360px; gap: 20px; padding: 20px 24px; align-items: start; }
+
+    /* Tabla liquidación */
+    .liq-table th { font-size: 10px; }
+    .liq-table td { padding: 9px 10px; font-size: 12px; }
+    td.editable { cursor: text; }
+    td.editable:hover { background: #fffbf0; }
+    .inline-input {
+      width: 100%; border: none; outline: none; background: transparent;
+      font-size: 12px; text-align: right; font-family: inherit;
+      font-variant-numeric: tabular-nums;
+    }
+    .inline-input:focus { background: #fffbf0; border-radius: 2px; }
+
+    /* Panel lateral */
+    .side-panel { display: flex; flex-direction: column; gap: 16px; position: sticky; top: 70px; }
+
+    /* Gastos */
+    .gasto-item { display: flex; align-items: flex-start; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .gasto-item:last-child { border-bottom: none; }
+    .gasto-info { flex: 1; min-width: 0; }
+    .gasto-proveedor { font-size: 12px; font-weight: 600; color: var(--navy); }
+    .gasto-desc { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gasto-monto { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; }
+    .cat-tag { display: inline-block; padding: 1px 6px; border-radius: 2px; font-size: 9px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+    .cat-servicios      { background: #dbeafe; color: #1e40af; }
+    .cat-mantenimiento  { background: #dcfce7; color: #15803d; }
+    .cat-seguro         { background: #fce7f3; color: #be185d; }
+    .cat-administrativo { background: #ede9fe; color: #6d28d9; }
+    .cat-bancario       { background: #fef9c3; color: #92400e; }
+    .cat-otro           { background: var(--cream); color: var(--muted); }
+
+    .totales-box { background: var(--navy); color: var(--white); padding: 16px 18px; border-radius: var(--radius); }
+    .totales-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 12px; }
+    .totales-row.total { font-size: 15px; font-weight: 600; border-top: 1px solid rgba(255,255,255,.2); margin-top: 6px; padding-top: 8px; color: var(--gold); }
+
+    .btn-pdf { background: #dc2626; color: white; }
+    .btn-pdf:hover { background: #b91c1c; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-title">Galamar III · Expensas</span>
+    </div>
+    <div class="topbar-right">
+      <select class="periodo-select" id="periodoSelect" onchange="cargarPeriodo(this.value)"></select>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Principal</div>
+        <a class="nav-link" href="index.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link active" href="liquidacion.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8"/></svg>
+          Liquidación
+        </a>
+        <a class="nav-link" href="banco.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1M3 6l9-3 9 3v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+          Resumen Bancario
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gestión</div>
+        <a class="nav-link" href="historial.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Historial
+        </a>
+        <a class="nav-link" href="config.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Configuración
+        </a>
+      </div>
+    </nav>
+
+    <main class="main" id="main">
+
+      <div class="page-header">
+        <div>
+          <h1 id="pageTitle">Liquidación</h1>
+          <p id="pageSubtitle">Seleccioná un período</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="agregarNuevoPeriodo()">+ Nuevo período</button>
+          <button class="btn btn-primary btn-sm" onclick="recalcularTodo()" id="btnRecalc">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Recalcular
+          </button>
+          <button class="btn btn-gold btn-sm" onclick="guardarLiquidacion()" id="btnGuardar">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+            Guardar
+          </button>
+          <button class="btn btn-pdf btn-sm" onclick="generarPDF()" id="btnPdf">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            Generar PDF
+          </button>
+        </div>
+      </div>
+
+      <div id="contenido">
+        <div class="page-loader">Seleccioná un período para comenzar</div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: agregar gasto -->
+<div class="modal-overlay" id="modalGasto">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalGastoTitle">Agregar gasto</h3>
+      <button class="modal-close" onclick="cerrarModalGasto()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="gastoId">
+      <div class="form-group">
+        <label class="form-label">Proveedor / Concepto</label>
+        <input class="form-input" id="gastoProveedor" placeholder="Nombre del proveedor">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción</label>
+        <input class="form-input" id="gastoDescripcion" placeholder="Detalle del servicio o trabajo">
+      </div>
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label class="form-label">Monto ($)</label>
+          <input class="form-input" id="gastoMonto" type="number" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select class="form-select" id="gastoCat">
+            <option value="servicios">Servicios</option>
+            <option value="mantenimiento">Mantenimiento</option>
+            <option value="seguro">Seguro</option>
+            <option value="administrativo">Administrativo</option>
+            <option value="bancario">Gastos bancarios</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Aplica a</label>
+        <select class="form-select" id="gastoAplica">
+          <option value="todos">Todos los propietarios</option>
+          <option value="cocheras">Solo propietarios de cocheras</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+          <input type="checkbox" id="gastoRecurrente">
+          Gasto recurrente (aparece en próximos períodos)
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="cerrarModalGasto()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="guardarGasto()">Guardar gasto</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- jsPDF para generar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="js/config.js"></script>
+<script>
+  let liquidacion  = null;
+  let unidades     = [];
+  let gastos       = [];
+  let saldos       = {};    // { unidad_id: saldo_mensual }
+  let config       = {};
+  let periodos     = [];
+
+  // ── Init ─────────────────────────────────────────────────────
+  async function init() {
+    const cfgs = await SB.get('configuracion');
+    cfgs.forEach(c => { config[c.clave] = c.valor; });
+
+    unidades = await SB.get('unidades', 'order=orden.asc&activa=eq.true');
+
+    const liqs = await SB.get('liquidaciones', 'order=periodo.desc');
+    periodos = liqs;
+
+    const sel = document.getElementById('periodoSelect');
+    liqs.forEach((l, i) => {
+      const opt = document.createElement('option');
+      opt.value = l.periodo;
+      opt.textContent = fmtPeriodo(l.periodo).replace(/^\w/, c => c.toUpperCase());
+      if (i === 0) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    if (liqs.length) await cargarPeriodo(liqs[0].periodo);
+  }
+
+  async function cargarPeriodo(periodo) {
+    const liqs = await SB.get('liquidaciones', `periodo=eq.${periodo}`);
+    liquidacion = liqs[0] || null;
+    if (!liquidacion) return;
+
+    // Cargar gastos
+    gastos = await SB.get('gastos', `liquidacion_id=eq.${liquidacion.id}&order=categoria.asc,orden.asc`);
+
+    // Cargar saldos del período
+    const saldosData = await SB.get('saldos_mensuales',
+      `liquidacion_id=eq.${liquidacion.id}&select=*,unidades(codigo,propietario,precio_base,cocheras,tipo)`);
+    saldos = {};
+    saldosData.forEach(s => { saldos[s.unidad_id] = s; });
+
+    const titulo = fmtPeriodo(periodo).replace(/^\w/, c => c.toUpperCase());
+    document.getElementById('pageTitle').textContent    = `Liquidación · ${titulo}`;
+    document.getElementById('pageSubtitle').textContent =
+      `${liquidacion.estado === 'publicada' ? '✓ Publicada' : '⬤ Borrador'} · ${unidades.length} unidades · ${gastos.length} ítems de gastos`;
+
+    renderContenido();
+  }
+
+  // ── Render principal ─────────────────────────────────────────
+  function renderContenido() {
+    const precioCoch = parseFloat(config.precio_cochera || 1116);
+    const tasa       = parseFloat(config.tasa_interes || 4.5);
+    const mesLabel   = liquidacion ? fmtPeriodo(liquidacion.periodo).replace(/^\w/, c => c.toUpperCase()) : '';
+
+    // Calcular totales de gastos
+    const totalEgresos = gastos.reduce((s, g) => s + parseFloat(g.monto), 0);
+    const totalPagos   = Object.values(saldos).reduce((s, x) => s + parseFloat(x.pagos || 0), 0);
+    const totalDeuda   = Object.values(saldos).reduce((s, x) => s + Math.max(0, parseFloat(x.saldo_final || 0)), 0);
+
+    document.getElementById('contenido').innerHTML = `
+    <div class="two-col">
+
+      <!-- Tabla principal de unidades -->
+      <div>
+        <div class="section-title" style="padding:0 0 12px">Detalle por unidad — ${mesLabel}</div>
+        <div class="table-wrap">
+          <table class="liq-table">
+            <thead>
+              <tr>
+                <th>Unidad</th>
+                <th>Propietario</th>
+                <th class="num">Expensa</th>
+                <th class="num">Saldo ant.</th>
+                <th class="num">Pagos</th>
+                <th class="num">Gs. Partic.</th>
+                <th class="num">Intereses</th>
+                <th class="num" style="background:rgba(201,165,88,.15);color:var(--gold)">Total a pagar</th>
+                <th class="num">Saldo final</th>
+              </tr>
+            </thead>
+            <tbody id="tablaLiq">
+              <tr><td colspan="9" class="page-loader">Calculando...</td></tr>
+            </tbody>
+            <tfoot id="tablaLiqFoot"></tfoot>
+          </table>
+        </div>
+
+        <!-- Ingresos adicionales -->
+        <div style="margin-top:20px" class="panel">
+          <div class="panel-header"><span class="panel-title">Ingresos adicionales</span></div>
+          <div class="panel-body">
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label">Alquiler dpto. planta baja ($)</label>
+                <input class="form-input" id="ingresoAlquiler" type="number" step="0.01"
+                  value="${liquidacion?.ingreso_alquiler_pb || 0}" oninput="recalcularResumen()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ingreso luz portería ($)</label>
+                <input class="form-input" id="ingresoLuz" type="number" step="0.01"
+                  value="${liquidacion?.ingreso_luz_porteria || 0}" oninput="recalcularResumen()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Saldo caja período anterior ($)</label>
+                <input class="form-input" id="saldoCajaAnt" type="number" step="0.01"
+                  value="${liquidacion?.saldo_caja_anterior || 0}" oninput="recalcularResumen()">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel lateral -->
+      <div class="side-panel">
+
+        <!-- Resumen financiero -->
+        <div class="totales-box">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:10px">Resumen del período</div>
+          <div class="totales-row"><span>Saldo anterior caja</span><span id="resSaldoAnt">—</span></div>
+          <div class="totales-row"><span>+ Ingresos expensas</span><span id="resIngresos">—</span></div>
+          <div class="totales-row"><span>+ Otros ingresos</span><span id="resOtros">—</span></div>
+          <div class="totales-row"><span>− Egresos</span><span id="resEgresos">—</span></div>
+          <div class="totales-row total"><span>Saldo en caja</span><span id="resSaldo">—</span></div>
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.15)">
+            <div class="totales-row"><span style="color:rgba(255,255,255,.6)">Deuda total propietarios</span><span id="resDeuda" style="color:#fca5a5">—</span></div>
+          </div>
+        </div>
+
+        <!-- Gastos del mes -->
+        <div class="panel">
+          <div class="panel-header" style="justify-content:space-between">
+            <span class="panel-title">Gastos del mes</span>
+            <button class="btn btn-outline btn-sm" onclick="abrirModalGasto()">+ Agregar</button>
+          </div>
+          <div style="padding:0 16px;max-height:340px;overflow-y:auto" id="listaGastos">
+            <div class="page-loader" style="height:80px">Sin gastos cargados</div>
+          </div>
+          <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--muted)">Total egresos</span>
+            <strong id="totalEgresosLabel" style="font-size:14px;color:var(--navy)">${fmt$(totalEgresos)}</strong>
+          </div>
+        </div>
+
+        <!-- Intereses -->
+        <div class="panel">
+          <div class="panel-header"><span class="panel-title">Configuración de intereses</span></div>
+          <div class="panel-body">
+            <div class="form-group">
+              <label class="form-label">Tasa mensual (%)</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input class="form-input" id="tasaInput" type="number" step="0.1" value="${config.tasa_interes || 4.5}" style="width:90px">
+                <button class="btn btn-outline btn-sm" onclick="recalcularTodo()">Aplicar</button>
+              </div>
+            </div>
+            <p style="font-size:10px;color:var(--muted);margin-top:4px">Se aplica sobre saldo deudor pendiente de cada unidad</p>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+
+    renderTablaLiq();
+    renderGastos();
+    recalcularResumen();
+  }
+
+  // ── Tabla de liquidación por unidad ─────────────────────────
+  function renderTablaLiq() {
+    const precioCoch = parseFloat(config.precio_cochera || 1116);
+    const tbody = document.getElementById('tablaLiq');
+    const tfoot = document.getElementById('tablaLiqFoot');
+    if (!tbody) return;
+
+    let totExpensa = 0, totAnt = 0, totPagos = 0, totGsP = 0, totInt = 0, totTotal = 0, totSaldo = 0;
+
+    tbody.innerHTML = unidades.map(u => {
+      const s   = saldos[u.id] || {};
+      const exp = calcularExpensa(u, precioCoch);
+      const ant = parseFloat(s.saldo_anterior || 0);
+      const pag = parseFloat(s.pagos || 0);
+      const gsp = parseFloat(s.gastos_particulares || 0);
+      const interes = parseFloat(s.punitorios || 0);
+      const saldoPend = Math.max(0, ant - pag);
+      const totalPagar = saldoPend + interes + exp + gsp;
+      const saldoFinal = parseFloat(s.saldo_final || (totalPagar - pag - (ant >= pag ? 0 : pag - ant)));
+
+      totExpensa += exp;
+      totAnt     += ant;
+      totPagos   += pag;
+      totGsP     += gsp;
+      totInt     += interes;
+      totTotal   += totalPagar;
+      totSaldo   += Math.max(0, saldoFinal);
+
+      const sfColor = saldoFinal > 0 ? 'var(--red)' : saldoFinal < 0 ? 'var(--green)' : 'var(--text)';
+
+      return `<tr>
+        <td><strong style="font-size:12px">${u.codigo}</strong></td>
+        <td style="color:${u.propietario ? 'var(--text)' : 'var(--muted)'};max-width:120px;overflow:hidden;text-overflow:ellipsis">${u.propietario || '—'}</td>
+        <td class="num">${fmt$(exp)}</td>
+        <td class="num editable" onclick="editarCelda(this, '${u.id}', 'saldo_anterior', ${ant})">
+          <input class="inline-input" value="${ant.toFixed(2)}" onblur="guardarCelda(this, '${u.id}', 'saldo_anterior')" onkeydown="enterCelda(event)">
+        </td>
+        <td class="num editable" onclick="editarCelda(this, '${u.id}', 'pagos', ${pag})">
+          <input class="inline-input" style="color:var(--green)" value="${pag.toFixed(2)}" onblur="guardarCelda(this, '${u.id}', 'pagos')" onkeydown="enterCelda(event)">
+        </td>
+        <td class="num editable" onclick="editarCelda(this, '${u.id}', 'gastos_particulares', ${gsp})">
+          <input class="inline-input" value="${gsp > 0 ? gsp.toFixed(2) : ''}" placeholder="0" onblur="guardarCelda(this, '${u.id}', 'gastos_particulares')" onkeydown="enterCelda(event)">
+        </td>
+        <td class="num editable" onclick="editarCelda(this, '${u.id}', 'punitorios', ${interes})">
+          <input class="inline-input" style="color:var(--amber)" value="${interes > 0 ? interes.toFixed(2) : ''}" placeholder="auto" onblur="guardarCelda(this, '${u.id}', 'punitorios')" onkeydown="enterCelda(event)">
+        </td>
+        <td class="num" style="background:rgba(201,165,88,.07);font-weight:700;font-size:13px">${fmt$(totalPagar)}</td>
+        <td class="num" style="color:${sfColor};font-weight:600">${fmt$(saldoFinal)}</td>
+      </tr>`;
+    }).join('');
+
+    tfoot.innerHTML = `<tr style="background:var(--navy);color:var(--white)">
+      <td colspan="2" style="padding:9px 10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase">TOTALES</td>
+      <td class="num" style="padding:9px 10px;color:rgba(255,255,255,.8)">${fmt$(totExpensa)}</td>
+      <td class="num" style="padding:9px 10px;color:rgba(255,255,255,.8)">${fmt$(totAnt)}</td>
+      <td class="num" style="padding:9px 10px;color:#86efac">${fmt$(totPagos)}</td>
+      <td class="num" style="padding:9px 10px;color:rgba(255,255,255,.8)">${fmt$(totGsP)}</td>
+      <td class="num" style="padding:9px 10px;color:#fcd34d">${fmt$(totInt)}</td>
+      <td class="num" style="padding:9px 10px;color:var(--gold);font-weight:700">${fmt$(totTotal)}</td>
+      <td class="num" style="padding:9px 10px;color:#fca5a5">${fmt$(totSaldo)}</td>
+    </tr>`;
+  }
+
+  // ── Edición inline ────────────────────────────────────────────
+  function editarCelda(td, uid, campo, val) { /* ya tiene input, solo focus */ td.querySelector('input')?.focus(); }
+
+  async function guardarCelda(input, uid, campo) {
+    const val = parseFloat(input.value) || 0;
+    const s   = saldos[uid];
+    if (!s?.id) return;
+
+    // Recalcular saldo_final
+    const exp     = calcularExpensa(unidades.find(u => u.id === uid), parseFloat(config.precio_cochera || 1116));
+    const updated = { ...s, [campo]: val };
+    const saldoPend = Math.max(0, parseFloat(updated.saldo_anterior) - parseFloat(updated.pagos));
+    const totalPagar = saldoPend + parseFloat(updated.punitorios || 0) + exp + parseFloat(updated.gastos_particulares || 0);
+    updated.saldo_final = totalPagar - parseFloat(updated.pagos);
+
+    try {
+      await SB.patch('saldos_mensuales', s.id, { [campo]: val, saldo_final: updated.saldo_final });
+      saldos[uid] = { ...saldos[uid], [campo]: val, saldo_final: updated.saldo_final };
+      recalcularResumen();
+    } catch (err) {
+      toast('Error guardando: ' + err.message, 'error');
+    }
+  }
+
+  function enterCelda(e) { if (e.key === 'Enter') e.target.blur(); }
+
+  // ── Recalcular desde tasa ────────────────────────────────────
+  async function recalcularTodo() {
+    const tasa = parseFloat(document.getElementById('tasaInput')?.value || config.tasa_interes || 4.5);
+    const precioCoch = parseFloat(config.precio_cochera || 1116);
+
+    for (const u of unidades) {
+      const s = saldos[u.id];
+      if (!s?.id) continue;
+
+      const saldoPend = Math.max(0, parseFloat(s.saldo_anterior || 0) - parseFloat(s.pagos || 0));
+      const interes   = saldoPend > 0 ? Math.round(saldoPend * tasa / 100 * 100) / 100 : 0;
+      const exp       = calcularExpensa(u, precioCoch);
+      const gsp       = parseFloat(s.gastos_particulares || 0);
+      const totalPagar = saldoPend + interes + exp + gsp;
+      const saldoFinal = totalPagar - parseFloat(s.pagos || 0);
+
+      try {
+        await SB.patch('saldos_mensuales', s.id, { punitorios: interes, saldo_final: saldoFinal });
+        saldos[u.id] = { ...saldos[u.id], punitorios: interes, saldo_final: saldoFinal };
+      } catch (_) {}
+    }
+
+    renderTablaLiq();
+    recalcularResumen();
+    toast('Intereses recalculados al ' + tasa + '%', 'success');
+  }
+
+  // ── Resumen lateral ──────────────────────────────────────────
+  function recalcularResumen() {
+    const saldoCajaAnt = parseFloat(document.getElementById('saldoCajaAnt')?.value || 0);
+    const alquiler     = parseFloat(document.getElementById('ingresoAlquiler')?.value || 0);
+    const luz          = parseFloat(document.getElementById('ingresoLuz')?.value || 0);
+    const totalPagos   = Object.values(saldos).reduce((s, x) => s + parseFloat(x.pagos || 0), 0);
+    const totalEgresos = gastos.reduce((s, g) => s + parseFloat(g.monto), 0);
+    const totalDeuda   = Object.values(saldos).reduce((s, x) => s + Math.max(0, parseFloat(x.saldo_final || 0)), 0);
+
+    const otrosIngresos = alquiler + luz;
+    const saldoCaja = saldoCajaAnt + totalPagos + otrosIngresos - totalEgresos;
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('resSaldoAnt', fmt$(saldoCajaAnt));
+    set('resIngresos', fmt$(totalPagos));
+    set('resOtros',    fmt$(otrosIngresos));
+    set('resEgresos',  fmt$(totalEgresos));
+    set('resSaldo',    fmt$(saldoCaja));
+    set('resDeuda',    fmt$(totalDeuda));
+    if (document.getElementById('totalEgresosLabel'))
+      document.getElementById('totalEgresosLabel').textContent = fmt$(totalEgresos);
+  }
+
+  // ── Gastos ────────────────────────────────────────────────────
+  function renderGastos() {
+    const lista = document.getElementById('listaGastos');
+    if (!lista) return;
+    if (!gastos.length) {
+      lista.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Sin gastos cargados</div>`;
+      return;
+    }
+    lista.innerHTML = gastos.map(g => `
+      <div class="gasto-item">
+        <div class="gasto-info">
+          <div class="gasto-proveedor">${esc(g.proveedor)}</div>
+          <div class="gasto-desc">${esc(g.descripcion)}</div>
+          <span class="cat-tag cat-${g.categoria}">${g.categoria}</span>
+          ${g.aplica_a !== 'todos' ? `<span class="cat-tag" style="background:#f0fdf4;color:var(--green);margin-left:3px">${g.aplica_a === 'cocheras' ? 'Cocheras' : g.aplica_a}</span>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <div class="gasto-monto">${fmt$(g.monto)}</div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-outline btn-sm btn-icon" onclick="editarGasto('${g.id}')">
+              <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn btn-danger btn-sm btn-icon" onclick="eliminarGasto('${g.id}')">
+              <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>`).join('');
+    recalcularResumen();
+  }
+
+  function abrirModalGasto(id = null) {
+    const g = id ? gastos.find(x => x.id === id) : null;
+    document.getElementById('gastoId').value          = g?.id || '';
+    document.getElementById('gastoProveedor').value   = g?.proveedor || '';
+    document.getElementById('gastoDescripcion').value = g?.descripcion || '';
+    document.getElementById('gastoMonto').value       = g?.monto || '';
+    document.getElementById('gastoCat').value         = g?.categoria || 'servicios';
+    document.getElementById('gastoAplica').value      = g?.aplica_a || 'todos';
+    document.getElementById('gastoRecurrente').checked = g?.es_recurrente || false;
+    document.getElementById('modalGastoTitle').textContent = g ? 'Editar gasto' : 'Agregar gasto';
+    document.getElementById('modalGasto').classList.add('open');
+    document.getElementById('gastoProveedor').focus();
+  }
+
+  function editarGasto(id) { abrirModalGasto(id); }
+
+  async function eliminarGasto(id) {
+    if (!confirm('¿Eliminar este gasto?')) return;
+    await SB.delete('gastos', id);
+    gastos = gastos.filter(g => g.id !== id);
+    renderGastos();
+    toast('Gasto eliminado', 'success');
+  }
+
+  function cerrarModalGasto() { document.getElementById('modalGasto').classList.remove('open'); }
+
+  async function guardarGasto() {
+    const id    = document.getElementById('gastoId').value;
+    const datos = {
+      liquidacion_id: liquidacion.id,
+      proveedor:      document.getElementById('gastoProveedor').value.trim(),
+      descripcion:    document.getElementById('gastoDescripcion').value.trim(),
+      monto:          parseFloat(document.getElementById('gastoMonto').value) || 0,
+      categoria:      document.getElementById('gastoCat').value,
+      aplica_a:       document.getElementById('gastoAplica').value,
+      es_recurrente:  document.getElementById('gastoRecurrente').checked
+    };
+
+    if (!datos.proveedor || !datos.monto) { toast('Completá proveedor y monto', 'error'); return; }
+
+    try {
+      if (id) {
+        await SB.patch('gastos', id, datos);
+        const idx = gastos.findIndex(g => g.id === id);
+        if (idx >= 0) gastos[idx] = { ...gastos[idx], ...datos };
+      } else {
+        const res = await SB.post('gastos', datos);
+        gastos.push(res[0]);
+      }
+      cerrarModalGasto();
+      renderGastos();
+      toast('Gasto guardado', 'success');
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // ── Guardar liquidación ──────────────────────────────────────
+  async function guardarLiquidacion() {
+    if (!liquidacion) return;
+
+    const saldoCajaAnt  = parseFloat(document.getElementById('saldoCajaAnt')?.value || 0);
+    const alquiler      = parseFloat(document.getElementById('ingresoAlquiler')?.value || 0);
+    const luz           = parseFloat(document.getElementById('ingresoLuz')?.value || 0);
+    const totalPagos    = Object.values(saldos).reduce((s, x) => s + parseFloat(x.pagos || 0), 0);
+    const totalEgresos  = gastos.reduce((s, g) => s + parseFloat(g.monto), 0);
+    const saldoCaja     = saldoCajaAnt + totalPagos + alquiler + luz - totalEgresos;
+
+    try {
+      await SB.patch('liquidaciones', liquidacion.id, {
+        saldo_caja_anterior:  saldoCajaAnt,
+        ingreso_alquiler_pb:  alquiler,
+        ingreso_luz_porteria: luz,
+        total_ingresos:       totalPagos + alquiler + luz,
+        total_egresos:        totalEgresos,
+        saldo_caja_final:     saldoCaja,
+        updated_at:           new Date().toISOString()
+      });
+      toast('Liquidación guardada', 'success');
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // ── Nuevo período ────────────────────────────────────────────
+  async function agregarNuevoPeriodo() {
+    const mes  = prompt('Mes del nuevo período (1-12):');
+    const anio = prompt('Año:');
+    if (!mes || !anio) return;
+
+    const periodo = periodoISO(anio, mes);
+
+    try {
+      // Crear liquidación
+      const res = await SB.post('liquidaciones', { periodo, estado: 'borrador' });
+      const liqId = res[0].id;
+
+      // Crear saldos para cada unidad (saldo_anterior = saldo_final del mes anterior)
+      const precioCoch = parseFloat(config.precio_cochera || 1116);
+      for (const u of unidades) {
+        const exp = calcularExpensa(u, precioCoch);
+        await SB.post('saldos_mensuales', {
+          unidad_id:      u.id,
+          liquidacion_id: liqId,
+          periodo,
+          saldo_anterior: 0,  // se puede actualizar desde el período anterior
+          expensa_mes:    exp,
+          gastos_particulares: 0,
+          pagos: 0,
+          punitorios: 0,
+          saldo_final: exp
+        });
+      }
+
+      toast('Período creado', 'success');
+      location.reload();
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // ── Generar PDF ──────────────────────────────────────────────
+  function generarPDF() {
+    if (!liquidacion) { toast('Primero cargá una liquidación', 'error'); return; }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const periodo = fmtPeriodo(liquidacion.periodo).replace(/^\w/, c => c.toUpperCase());
+    const precioCoch = parseFloat(config.precio_cochera || 1116);
+
+    // ── Página 1: Cabecera ──
+    doc.setFillColor(15, 27, 53);
+    doc.rect(0, 0, 210, 18, 'F');
+    doc.setTextColor(201, 165, 88);
+    doc.setFontSize(11); doc.setFont(undefined, 'bold');
+    doc.text('CONSORCIO EDIFICIO GALAMAR III', 14, 11);
+    doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont(undefined, 'normal');
+    doc.text(`LIQUIDACIÓN DE EXPENSAS · ${periodo.toUpperCase()}`, 14, 16);
+
+    doc.setFillColor(201, 165, 88);
+    doc.rect(0, 18, 210, 1, 'F');
+
+    // Caja datos bancarios
+    doc.setTextColor(44, 55, 72); doc.setFontSize(8.5);
+    let y = 26;
+    const datos = [
+      ['Banco:', config.banco || 'Banco Galicia'],
+      ['Cuenta:', config.cuenta_nro || ''],
+      ['CBU:', config.cbu || ''],
+      ['Alias:', config.alias || 'GALAMAR3'],
+      ['CUIT:', config.cuit || ''],
+    ];
+    datos.forEach(([k, v]) => {
+      doc.setFont(undefined, 'bold'); doc.text(k, 14, y);
+      doc.setFont(undefined, 'normal'); doc.text(v, 36, y);
+      y += 5;
+    });
+
+    // Precios
+    y = 26;
+    doc.setFont(undefined, 'bold'); doc.text('PRECIOS DE EXPENSAS:', 110, y); y += 5;
+    doc.setFont(undefined, 'normal');
+    const precios = [
+      ['Depto A y D:', fmt$(parseFloat(config.precio_tipo_AD || 48620))],
+      ['Depto B y C:', fmt$(parseFloat(config.precio_tipo_BC || 40205))],
+      ['PB Local 1:', fmt$(parseFloat(config.precio_pb_local1 || 24310))],
+      ['PB Local 2:', fmt$(parseFloat(config.precio_pb_local2 || 61710))],
+      ['9° piso (base):', fmt$(parseFloat(config.precio_9piso || 98604))],
+      ['Cochera:', fmt$(parseFloat(config.precio_cochera || 1116))],
+    ];
+    precios.forEach(([k, v]) => {
+      doc.text(k, 110, y); doc.text(v, 170, y, { align: 'right' });
+      y += 5;
+    });
+
+    // Resumen financiero
+    y = 64;
+    doc.setFillColor(250, 248, 245);
+    doc.rect(14, y, 182, 28, 'F');
+    doc.setDrawColor(232, 224, 208); doc.rect(14, y, 182, 28);
+    doc.setFont(undefined, 'bold'); doc.setFontSize(8); doc.setTextColor(44,55,72);
+    doc.text('RESUMEN DEL PERÍODO', 16, y + 5);
+    y += 9;
+    doc.setFont(undefined, 'normal');
+    const totalPagos   = Object.values(saldos).reduce((s, x) => s + parseFloat(x.pagos || 0), 0);
+    const totalEgresos = gastos.reduce((s, g) => s + parseFloat(g.monto), 0);
+    const alquiler     = parseFloat(liquidacion.ingreso_alquiler_pb || 0);
+    const luz          = parseFloat(liquidacion.ingreso_luz_porteria || 0);
+    const saldoCaja    = parseFloat(liquidacion.saldo_caja_anterior || 0) + totalPagos + alquiler + luz - totalEgresos;
+    [
+      ['Saldo anterior:', fmt$(liquidacion.saldo_caja_anterior || 0)],
+      ['Ingresos por expensas:', fmt$(totalPagos)],
+      ['Otros ingresos:', fmt$(alquiler + luz)],
+      ['Egresos:', fmt$(totalEgresos)],
+      ['SALDO:', fmt$(saldoCaja)],
+    ].forEach(([k, v], i) => {
+      if (i === 4) doc.setFont(undefined, 'bold');
+      doc.text(k, 16, y); doc.text(v, 195, y, { align: 'right' });
+      y += 5;
+    });
+
+    // ── Página 2: Tabla de pagos ──
+    doc.addPage();
+    doc.setFillColor(15, 27, 53);
+    doc.rect(0, 0, 210, 14, 'F');
+    doc.setTextColor(201, 165, 88); doc.setFontSize(10); doc.setFont(undefined, 'bold');
+    doc.text(`DETALLE DE PAGOS · ${periodo.toUpperCase()}`, 14, 9);
+
+    const tableData = unidades.map(u => {
+      const s    = saldos[u.id] || {};
+      const exp  = calcularExpensa(u, precioCoch);
+      const ant  = parseFloat(s.saldo_anterior || 0);
+      const pag  = parseFloat(s.pagos || 0);
+      const gsp  = parseFloat(s.gastos_particulares || 0);
+      const int  = parseFloat(s.punitorios || 0);
+      const pend = Math.max(0, ant - pag);
+      const total = pend + int + exp + gsp;
+      return [
+        u.codigo,
+        u.propietario || '',
+        fmt$(exp),
+        fmt$(ant),
+        pag > 0 ? fmt$(pag) : '—',
+        gsp > 0 ? fmt$(gsp) : '—',
+        int > 0 ? fmt$(int) : '—',
+        fmt$(total),
+      ];
+    });
+
+    doc.autoTable({
+      startY: 18,
+      head: [['Unidad', 'Propietario', 'Expensa', 'Saldo ant.', 'Pagos', 'Gs. Part.', 'Intereses', 'Total a pagar']],
+      body: tableData,
+      styles: { fontSize: 7.5, cellPadding: 2.5 },
+      headStyles: { fillColor: [15, 27, 53], textColor: [201, 165, 88], fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [250, 248, 245] },
+      columnStyles: {
+        0: { fontStyle: 'bold', cellWidth: 16 },
+        1: { cellWidth: 38 },
+        2: { halign: 'right', cellWidth: 20 },
+        3: { halign: 'right', cellWidth: 22 },
+        4: { halign: 'right', cellWidth: 22 },
+        5: { halign: 'right', cellWidth: 18 },
+        6: { halign: 'right', cellWidth: 20 },
+        7: { halign: 'right', fontStyle: 'bold', cellWidth: 24 },
+      },
+      foot: [['TOTALES', '', '', '', '', '', '', fmt$(Object.values(saldos).reduce((s,x) => s + parseFloat(x.saldo_final||0), 0))]],
+      footStyles: { fillColor: [15, 27, 53], textColor: 255, fontStyle: 'bold' },
+    });
+
+    // ── Página 3: Detalle de Egresos ──
+    doc.addPage();
+    doc.setFillColor(15, 27, 53);
+    doc.rect(0, 0, 210, 14, 'F');
+    doc.setTextColor(201, 165, 88); doc.setFontSize(10); doc.setFont(undefined, 'bold');
+    doc.text(`DETALLE DE EGRESOS · ${periodo.toUpperCase()}`, 14, 9);
+
+    // Agrupar por categoría
+    const cats = ['servicios','mantenimiento','seguro','administrativo','bancario','otro'];
+    const gastosData = [];
+    cats.forEach(cat => {
+      const catGastos = gastos.filter(g => g.categoria === cat);
+      if (!catGastos.length) return;
+      catGastos.forEach(g => {
+        gastosData.push([
+          g.proveedor,
+          g.descripcion.slice(0, 60) + (g.descripcion.length > 60 ? '...' : ''),
+          cat.toUpperCase(),
+          fmt$(g.monto)
+        ]);
+      });
+    });
+
+    doc.autoTable({
+      startY: 18,
+      head: [['Proveedor', 'Descripción', 'Categoría', 'Importe']],
+      body: gastosData,
+      styles: { fontSize: 7.5, cellPadding: 2.5 },
+      headStyles: { fillColor: [15, 27, 53], textColor: [201, 165, 88], fontStyle: 'bold', fontSize: 7 },
+      alternateRowStyles: { fillColor: [250, 248, 245] },
+      columnStyles: {
+        0: { cellWidth: 40, fontStyle: 'bold' },
+        1: { cellWidth: 90 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+      },
+      foot: [['', 'TOTAL EGRESOS', '', fmt$(totalEgresos)]],
+      footStyles: { fillColor: [15, 27, 53], textColor: 255, fontStyle: 'bold' },
+    });
+
+    // Firma
+    const finalY = doc.lastAutoTable.finalY + 20;
+    doc.setTextColor(44,55,72); doc.setFontSize(8); doc.setFont(undefined, 'normal');
+    doc.text('Sin otro particular, saludo a Ud. Atte.', 14, finalY);
+    doc.line(14, finalY + 18, 80, finalY + 18);
+    doc.text(config.administrador || 'Pablo Santamaria', 14, finalY + 22);
+    doc.text('Administrador', 14, finalY + 27);
+
+    // Guardar
+    const nombreArchivo = `Expensas_Galamar_${periodo.replace(/ /g,'_')}.pdf`;
+    doc.save(nombreArchivo);
+    toast(`PDF generado: ${nombreArchivo}`, 'success');
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarModalGasto(); });
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resumen Bancario · Galamar III</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 48px 24px; text-align: center; cursor: pointer;
+      transition: all .15s; background: var(--white);
+    }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: #fdf9f0; }
+    .upload-zone h3 { font-size: 15px; font-weight: 500; color: var(--navy); margin-bottom: 6px; }
+    .upload-zone p  { font-size: 12px; color: var(--muted); }
+    .upload-zone svg { margin: 0 auto 14px; display: block; color: var(--muted); }
+
+    .step-bar { display: flex; align-items: center; gap: 0; padding: 0 32px; background: var(--white); border-bottom: 1px solid var(--border); }
+    .step { display: flex; align-items: center; gap: 8px; padding: 14px 16px; font-size: 12px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; }
+    .step.active { color: var(--navy2); border-bottom-color: var(--gold); }
+    .step.done   { color: var(--green); }
+    .step-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+    .step.active .step-num { background: var(--navy2); color: var(--white); }
+    .step.done   .step-num { background: var(--green); color: var(--white); }
+    .step-divider { flex: 1; height: 1px; background: var(--border); }
+
+    .tx-row-unrecognized td { background: #fff7ed; }
+    .tx-row-confirmed td    { background: #f0fdf4; }
+
+    .assign-select {
+      padding: 5px 8px; border: 1.5px solid var(--border);
+      border-radius: var(--radius); font-size: 12px;
+      background: var(--white); cursor: pointer; outline: none;
+      min-width: 130px;
+    }
+    .assign-select:focus { border-color: var(--navy2); }
+
+    .conf-bar { display: flex; align-items: center; gap: 6px; }
+    .conf-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .resumen-box { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+    .resumen-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .resumen-row:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-title">Galamar III · Expensas</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-periodo" id="periodoActual"></span>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Principal</div>
+        <a class="nav-link" href="index.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" href="liquidacion.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8"/></svg>
+          Liquidación
+        </a>
+        <a class="nav-link active" href="banco.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1M3 6l9-3 9 3v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+          Resumen Bancario
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gestión</div>
+        <a class="nav-link" href="historial.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Historial
+        </a>
+        <a class="nav-link" href="config.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Configuración
+        </a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <h1>Resumen Bancario</h1>
+          <p>Subí el extracto del banco para identificar automáticamente los pagos de cada unidad</p>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="step-bar">
+        <div class="step active" id="step1"><div class="step-num">1</div> Subir archivo</div>
+        <div class="step-divider"></div>
+        <div class="step" id="step2"><div class="step-num">2</div> Análisis IA</div>
+        <div class="step-divider"></div>
+        <div class="step" id="step3"><div class="step-num">3</div> Revisar y confirmar</div>
+        <div class="step-divider"></div>
+        <div class="step" id="step4"><div class="step-num">4</div> Guardar</div>
+      </div>
+
+      <!-- PASO 1: Upload -->
+      <div id="panelUpload" class="section">
+        <div style="max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+          <!-- Selector de período -->
+          <div class="panel">
+            <div class="panel-header"><span class="panel-title">Período</span></div>
+            <div class="panel-body">
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Mes</label>
+                  <select class="form-select" id="uploadMes">
+                    <option value="1">Enero</option><option value="2">Febrero</option>
+                    <option value="3">Marzo</option><option value="4">Abril</option>
+                    <option value="5">Mayo</option><option value="6">Junio</option>
+                    <option value="7">Julio</option><option value="8">Agosto</option>
+                    <option value="9">Septiembre</option><option value="10">Octubre</option>
+                    <option value="11">Noviembre</option><option value="12">Diciembre</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Año</label>
+                  <input class="form-input" id="uploadAnio" type="number" value="2026" min="2020" max="2030">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Zona de upload -->
+          <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileUpload').click()"
+            ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4-4m0 0l-4 4m4-4v12"/>
+            </svg>
+            <h3>Arrastrá el extracto bancario aquí</h3>
+            <p>o hacé clic para seleccionar el archivo</p>
+            <p style="margin-top:8px;font-size:11px">Formatos: CSV · XLSX (Banco Galicia)</p>
+          </div>
+          <input type="file" id="fileUpload" accept=".csv,.xlsx,.xls" style="display:none" onchange="archivoSeleccionado(this.files[0])">
+
+          <!-- Info del archivo seleccionado -->
+          <div id="fileInfo" style="display:none" class="panel">
+            <div class="panel-body" style="display:flex;align-items:center;justify-content:space-between">
+              <div>
+                <div id="fileName" style="font-weight:600;color:var(--navy)"></div>
+                <div id="fileSize" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-outline btn-sm" onclick="resetUpload()">Cambiar</button>
+                <button class="btn btn-primary btn-sm" id="btnProcesar" onclick="procesarArchivo()">
+                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                  Analizar con IA
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nota sobre XLSX -->
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius);padding:12px 14px;font-size:12px;color:#1e40af">
+            <strong>Consejo:</strong> Si el banco te da un XLSX, la app lo parsea en el navegador automáticamente. Para CSV, el Worker lo procesa en la nube.
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: Procesando -->
+      <div id="panelProcesando" style="display:none" class="section">
+        <div style="max-width:500px;margin:0 auto;text-align:center;padding:48px 0">
+          <div style="width:48px;height:48px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px"></div>
+          <h3 style="font-size:16px;font-weight:400;color:var(--navy)" id="procesandoMsg">Analizando el extracto...</h3>
+          <p style="font-size:12px;color:var(--muted);margin-top:6px" id="procesandoSub">Identificando transacciones y pagos</p>
+        </div>
+      </div>
+
+      <!-- PASO 3: Revisar transacciones -->
+      <div id="panelRevisar" style="display:none">
+        <div style="padding:16px 32px;display:flex;align-items:center;justify-content:space-between;background:var(--white);border-bottom:1px solid var(--border)">
+          <div style="display:flex;gap:16px">
+            <span style="font-size:12px;color:var(--green);font-weight:600" id="infoReconocidos">0 reconocidos</span>
+            <span style="font-size:12px;color:var(--amber);font-weight:600" id="infoSinAsignar">0 sin asignar</span>
+            <span style="font-size:12px;color:var(--muted)" id="infoTotal">0 créditos totales</span>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="guardarTransacciones()">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+            Confirmar y guardar
+          </button>
+        </div>
+        <div class="section">
+          <div class="section-title">Créditos identificados (pagos recibidos)</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Descripción</th>
+                  <th>Origen / Leyenda</th>
+                  <th class="num">Monto</th>
+                  <th>Unidad asignada</th>
+                  <th>Confianza</th>
+                  <th>Fuente</th>
+                </tr>
+              </thead>
+              <tbody id="tablaTransacciones"></tbody>
+            </table>
+          </div>
+
+          <!-- Otros movimientos (débitos, etc.) -->
+          <div style="margin-top:24px">
+            <div class="section-title">Otros movimientos (débitos / gastos bancarios)</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Descripción</th>
+                    <th class="num">Débito</th>
+                    <th class="num">Crédito</th>
+                    <th class="num">Saldo</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaOtros"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/config.js"></script>
+<script>
+  let archivoActual  = null;
+  let transacciones  = [];
+  let unidades       = [];
+  let patrones       = [];
+  let liquidacionId  = null;
+
+  // ── Init ─────────────────────────────────────────────────────
+  async function init() {
+    const now = new Date();
+    document.getElementById('uploadMes').value  = now.getMonth() + 1;
+    document.getElementById('uploadAnio').value = now.getFullYear();
+    document.getElementById('periodoActual').textContent =
+      now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+
+    unidades = await SB.get('unidades', 'order=orden.asc&activa=eq.true');
+    const pat = await SB.get('patrones_pago', 'order=ocurrencias.desc');
+    patrones  = pat.map(p => ({
+      ...p,
+      unidad_codigo: unidades.find(u => u.id === p.unidad_id)?.codigo || ''
+    }));
+  }
+
+  // ── Upload ───────────────────────────────────────────────────
+  function dragOver(e)  { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag-over'); }
+  function dragLeave(e) { document.getElementById('uploadZone').classList.remove('drag-over'); }
+  function dropFile(e)  { e.preventDefault(); dragLeave(e); archivoSeleccionado(e.dataTransfer.files[0]); }
+
+  function archivoSeleccionado(file) {
+    if (!file) return;
+    archivoActual = file;
+    document.getElementById('fileName').textContent = file.name;
+    document.getElementById('fileSize').textContent = fmtSize(file.size);
+    document.getElementById('fileInfo').style.display = 'block';
+    document.getElementById('uploadZone').style.display = 'none';
+  }
+
+  function resetUpload() {
+    archivoActual = null;
+    document.getElementById('fileInfo').style.display  = 'none';
+    document.getElementById('uploadZone').style.display = '';
+    document.getElementById('fileUpload').value = '';
+  }
+
+  // ── Procesar: parse + Gemini ─────────────────────────────────
+  async function procesarArchivo() {
+    if (!archivoActual) return;
+
+    setStep(2);
+    document.getElementById('panelUpload').style.display     = 'none';
+    document.getElementById('panelProcesando').style.display = '';
+
+    const mes  = document.getElementById('uploadMes').value;
+    const anio = document.getElementById('uploadAnio').value;
+    const periodo = periodoISO(anio, mes);
+
+    try {
+      document.getElementById('procesandoMsg').textContent = 'Parseando el archivo...';
+      document.getElementById('procesandoSub').textContent = archivoActual.name;
+
+      let txParsed = [];
+      const ext = archivoActual.name.toLowerCase().split('.').pop();
+
+      if (ext === 'csv') {
+        // CSV → Worker
+        const form = new FormData();
+        form.append('archivo', archivoActual);
+        const res = await fetch(`${WORKER_URL}/banco/parse`, {
+          method: 'POST',
+          headers: { 'X-Expensas-Key': APP_SECRET },
+          body: form
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        txParsed = data.transacciones;
+      } else {
+        // XLSX → parsear en el navegador con SheetJS CDN
+        txParsed = await parseXLSXenNavegador(archivoActual);
+      }
+
+      document.getElementById('procesandoMsg').textContent = `${txParsed.length} transacciones encontradas. Consultando IA...`;
+      document.getElementById('procesandoSub').textContent = 'Gemini está identificando los pagos por unidad';
+
+      // Analizar con patrones + Gemini (via Worker)
+      const resAnalisis = await fetch(`${WORKER_URL}/banco/analizar`, {
+        method: 'POST',
+        headers: { 'X-Expensas-Key': APP_SECRET, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transacciones: txParsed, unidades, patrones })
+      });
+      const analisis = await resAnalisis.json();
+      if (!analisis.ok) throw new Error(analisis.error);
+
+      transacciones = txParsed;
+
+      // Merge resultados de análisis en créditos
+      const creditosAnalizados = analisis.resultados || [];
+
+      // Obtener o crear liquidación para el período
+      const liqs = await SB.get('liquidaciones', `periodo=eq.${periodo}`);
+      if (liqs.length) {
+        liquidacionId = liqs[0].id;
+      } else {
+        const nueva = await SB.post('liquidaciones', { periodo, estado: 'borrador' });
+        liquidacionId = nueva[0].id;
+      }
+
+      setStep(3);
+      document.getElementById('panelProcesando').style.display = 'none';
+      document.getElementById('panelRevisar').style.display    = '';
+
+      renderTransacciones(creditosAnalizados, txParsed.filter(t => !(parseFloat(t.credito || 0) > 1000)));
+
+    } catch (err) {
+      console.error(err);
+      toast('Error: ' + err.message, 'error');
+      setStep(1);
+      document.getElementById('panelProcesando').style.display = 'none';
+      document.getElementById('panelUpload').style.display     = '';
+    }
+  }
+
+  // ── Parser XLSX en el navegador (SheetJS CDN) ─────────────────
+  async function parseXLSXenNavegador(file) {
+    // Cargar SheetJS dinámicamente
+    if (!window.XLSX) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    const buffer = await file.arrayBuffer();
+    const wb     = XLSX.read(buffer, { type: 'array' });
+    const ws     = wb.Sheets[wb.SheetNames[0]];
+    const rows   = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+    // Detectar header
+    let headerIdx = -1;
+    for (let i = 0; i < Math.min(rows.length, 15); i++) {
+      const row = rows[i].join(' ').toLowerCase();
+      if (row.includes('fecha') && (row.includes('debito') || row.includes('credito') || row.includes('descripci'))) {
+        headerIdx = i;
+        break;
+      }
+    }
+
+    if (headerIdx < 0) {
+      // Intentar heurística: buscar primera fila con fecha
+      headerIdx = 0;
+    }
+
+    const txs = [];
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+      const r = rows[i];
+      if (!r.some(c => c !== '')) continue;
+
+      const fecha  = parseFecha(r[0]);
+      const desc   = String(r[1] || '').trim();
+      const origen = String(r[2] || '').trim();
+      const debito = parseMonto(r[3]);
+      const credito = parseMonto(r[4]);
+      const leyenda = String(r[5] || '').trim();
+      const saldo   = parseMonto(r[6]);
+
+      if (!fecha && !desc) continue;
+      txs.push({ fecha, descripcion: desc, origen, debito, credito, leyenda, saldo_banco: saldo });
+    }
+
+    return txs;
+  }
+
+  function parseFecha(val) {
+    if (!val) return null;
+    if (typeof val === 'number') {
+      // Excel serial date
+      const d = new Date((val - 25569) * 86400 * 1000);
+      return d.toISOString().slice(0, 10);
+    }
+    const s = String(val).trim();
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if (m) {
+      const y = m[3].length === 2 ? '20' + m[3] : m[3];
+      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    }
+    return s;
+  }
+
+  function parseMonto(val) {
+    if (!val && val !== 0) return 0;
+    const s = String(val).replace(/[^\d,.\-]/g, '').replace(',', '.');
+    return parseFloat(s) || 0;
+  }
+
+  // ── Render tabla de transacciones ────────────────────────────
+  function renderTransacciones(creditos, otros) {
+    const reconocidos   = creditos.filter(t => t.unidad_id || t.unidad_codigo);
+    const sinAsignar    = creditos.filter(t => !t.unidad_id && !t.unidad_codigo);
+
+    document.getElementById('infoReconocidos').textContent = `${reconocidos.length} reconocidos`;
+    document.getElementById('infoSinAsignar').textContent  = `${sinAsignar.length} sin asignar`;
+    document.getElementById('infoTotal').textContent       = `${creditos.length} créditos totales`;
+
+    const tbody = document.getElementById('tablaTransacciones');
+    tbody.innerHTML = creditos.map((t, i) => {
+      const asignada = t.unidad_codigo || '';
+      const confianza = parseFloat(t.confianza || 0);
+      const confClass = confianza >= 0.8 ? 'conf-high' : confianza >= 0.5 ? 'conf-medium' : 'conf-low';
+      const confText  = confianza >= 0.8 ? 'Alta' : confianza >= 0.5 ? 'Media' : confianza > 0 ? 'Baja' : '—';
+      const rowClass  = asignada ? 'tx-row-confirmed' : 'tx-row-unrecognized';
+
+      const opciones = `<option value="">— Sin asignar —</option>` +
+        unidades.map(u => `<option value="${u.codigo}" ${u.codigo === asignada ? 'selected' : ''}>${u.codigo}${u.propietario ? ' · ' + u.propietario : ''}</option>`).join('');
+
+      return `<tr class="${rowClass}" id="txrow_${i}">
+        <td style="font-size:12px">${t.fecha || '—'}</td>
+        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${esc(t.descripcion)}">${esc(t.descripcion)}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--muted)" title="${esc(t.leyenda || t.origen)}">${esc(t.leyenda || t.origen)}</td>
+        <td class="num" style="color:var(--green);font-weight:600">${fmt$(t.credito)}</td>
+        <td>
+          <select class="assign-select" id="sel_${i}" onchange="reasignar(${i}, this.value)">
+            ${opciones}
+          </select>
+        </td>
+        <td>
+          <span class="${asignada ? confClass : ''}" style="font-size:12px">${asignada ? confText : '—'}</span>
+          ${t.razon ? `<div style="font-size:10px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${esc(t.razon)}">${esc(t.razon)}</div>` : ''}
+        </td>
+        <td><span class="badge ${t.fuente === 'gemini' ? 'badge-gold' : t.fuente === 'patron' ? 'badge-green' : 'badge-muted'}" style="font-size:10px">${t.fuente === 'gemini' ? 'IA' : t.fuente === 'patron' ? 'Patrón' : 'Manual'}</span></td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">No se encontraron créditos mayores a $1.000</td></tr>`;
+
+    // Tabla de otros movimientos
+    const tbodyOtros = document.getElementById('tablaOtros');
+    tbodyOtros.innerHTML = otros.slice(0, 50).map(t =>
+      `<tr>
+        <td style="font-size:12px">${t.fecha || '—'}</td>
+        <td style="font-size:12px">${esc(t.descripcion)}</td>
+        <td class="num" style="color:var(--red)">${t.debito > 0 ? fmt$(t.debito) : '—'}</td>
+        <td class="num" style="color:var(--green)">${t.credito > 0 ? fmt$(t.credito) : '—'}</td>
+        <td class="num" style="font-size:11px;color:var(--muted)">${t.saldo_banco > 0 ? fmt$(t.saldo_banco) : '—'}</td>
+      </tr>`
+    ).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px">Sin otros movimientos</td></tr>`;
+
+    // Guardar array de créditos para confirmar luego
+    window._creditosParaGuardar = creditos;
+  }
+
+  function reasignar(idx, codigo) {
+    if (window._creditosParaGuardar) {
+      const unidad = unidades.find(u => u.codigo === codigo);
+      window._creditosParaGuardar[idx].unidad_codigo = codigo;
+      window._creditosParaGuardar[idx].unidad_id     = unidad?.id || null;
+      window._creditosParaGuardar[idx].fuente        = 'usuario';
+      window._creditosParaGuardar[idx].confianza     = codigo ? 1 : 0;
+    }
+  }
+
+  // ── Guardar en Supabase ─────────────────────────────────────
+  async function guardarTransacciones() {
+    if (!liquidacionId) { toast('No hay liquidación activa', 'error'); return; }
+
+    const creditos = window._creditosParaGuardar || [];
+    let guardados = 0, patronesNuevos = 0;
+
+    try {
+      for (const t of creditos) {
+        await SB.post('transacciones_banco', {
+          liquidacion_id: liquidacionId,
+          fecha:          t.fecha,
+          descripcion:    t.descripcion,
+          origen:         t.origen,
+          credito:        t.credito,
+          debito:         0,
+          leyenda:        t.leyenda || '',
+          saldo_banco:    t.saldo_banco || 0,
+          unidad_id:      t.unidad_id || null,
+          confianza:      t.confianza || 0,
+          confirmada:     true,
+          es_expensa:     !!t.unidad_id
+        });
+        guardados++;
+
+        // Si fue asignado manualmente, guardar/actualizar patrón
+        if (t.fuente === 'usuario' && t.unidad_id && t.descripcion) {
+          const palabras = t.descripcion.split(' ').filter(p => p.length > 3);
+          for (const palabra of palabras.slice(0, 3)) {
+            try {
+              await SB.upsert('patrones_pago', {
+                patron:    palabra.toUpperCase(),
+                unidad_id: t.unidad_id,
+                ocurrencias: 1,
+                ultima_vez: t.fecha || new Date().toISOString().slice(0,10),
+                creado_por: 'usuario'
+              }, 'patron,unidad_id');
+              patronesNuevos++;
+            } catch (_) {}
+          }
+        }
+      }
+
+      setStep(4);
+      toast(`${guardados} transacciones guardadas. ${patronesNuevos} patrones aprendidos`, 'success');
+
+      setTimeout(() => { window.location.href = 'liquidacion.html'; }, 2000);
+
+    } catch (err) {
+      toast('Error guardando: ' + err.message, 'error');
+    }
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────
+  function setStep(n) {
+    [1,2,3,4].forEach(i => {
+      const el = document.getElementById('step' + i);
+      el.classList.remove('active', 'done');
+      if (i < n) el.classList.add('done');
+      else if (i === n) el.classList.add('active');
+    });
+  }
+
+  function fmtSize(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(0) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  init();
+</script>
+</body>
+</html>

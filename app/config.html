@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración · Galamar III</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 24px 32px; }
+    .config-section { display: flex; flex-direction: column; gap: 16px; }
+    .price-display { font-size: 24px; font-weight: 300; color: var(--navy); }
+    .price-row { display: flex; align-items: center; gap: 12px; }
+    .price-input { width: 160px; font-size: 18px; font-weight: 300; }
+    .edit-icon { cursor: pointer; color: var(--muted); padding: 4px; }
+    .edit-icon:hover { color: var(--navy); }
+    .cochera-preview { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .unidades-precios { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; }
+    .precio-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--cream2); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; }
+    .precio-chip strong { color: var(--navy); }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-title">Galamar III · Expensas</span>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Principal</div>
+        <a class="nav-link" href="index.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" href="liquidacion.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8"/></svg>
+          Liquidación
+        </a>
+        <a class="nav-link" href="banco.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1M3 6l9-3 9 3v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+          Resumen Bancario
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gestión</div>
+        <a class="nav-link" href="historial.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Historial
+        </a>
+        <a class="nav-link active" href="config.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Configuración
+        </a>
+      </div>
+    </nav>
+
+    <main class="main">
+      <div class="page-header">
+        <div>
+          <h1>Configuración</h1>
+          <p>Precios de expensas, intereses y datos del edificio</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="guardarTodo()" id="btnGuardar">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
+          Guardar cambios
+        </button>
+      </div>
+
+      <div class="config-grid">
+
+        <!-- Columna izquierda -->
+        <div class="config-section">
+
+          <!-- Precios de expensas -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Precios de Expensas Mensuales</span>
+            </div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:14px">
+              <p style="font-size:11px;color:var(--muted)">
+                Modificar estos precios actualiza <strong>todos los futuros cálculos</strong>. Los saldos históricos no cambian.
+              </p>
+
+              <div class="form-row form-row-2">
+                <div class="form-group">
+                  <label class="form-label">Depto tipo A y D</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">$</span>
+                    <input class="form-input" id="cfg_precio_tipo_AD" type="number" style="padding-left:22px" step="1">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Depto tipo B y C</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">$</span>
+                    <input class="form-input" id="cfg_precio_tipo_BC" type="number" style="padding-left:22px" step="1">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">PB Local 1</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">$</span>
+                    <input class="form-input" id="cfg_precio_pb_local1" type="number" style="padding-left:22px" step="1">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">PB Local 2</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">$</span>
+                    <input class="form-input" id="cfg_precio_pb_local2" type="number" style="padding-left:22px" step="1">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">9° piso (base, sin cocheras)</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">$</span>
+                    <input class="form-input" id="cfg_precio_9piso" type="number" style="padding-left:22px" step="1">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="color:var(--gold2)">Cochera (por unidad)</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px">$</span>
+                    <input class="form-input" id="cfg_precio_cochera" type="number" style="padding-left:22px;border-color:var(--gold)" step="1" oninput="actualizarPreviewCocheras()">
+                  </div>
+                  <p style="font-size:10px;color:var(--muted);margin-top:3px">Se suma automáticamente al precio base por cada cochera asignada</p>
+                </div>
+              </div>
+
+              <!-- Preview de totales -->
+              <div style="background:var(--cream2);border:1px solid var(--border);border-radius:var(--radius);padding:14px">
+                <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Vista previa de totales (base + cochera)</div>
+                <div class="unidades-precios" id="previewPrecios"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tasa de interés -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Intereses por Mora</span>
+            </div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:14px">
+              <p style="font-size:11px;color:var(--muted)">Se aplica sobre el saldo deudor pendiente de cada unidad.</p>
+              <div class="form-group">
+                <label class="form-label">Tasa mensual (%)</label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="position:relative;width:140px">
+                    <input class="form-input" id="cfg_tasa_interes" type="number" step="0.1" min="0" max="100" style="padding-right:28px">
+                    <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--muted)">%</span>
+                  </div>
+                  <span style="font-size:12px;color:var(--muted)">mensual sobre saldo pendiente</span>
+                </div>
+                <p style="font-size:10px;color:var(--muted);margin-top:4px">
+                  Valor actual de los últimos meses: <strong>4,5%</strong> mensual
+                </p>
+              </div>
+              <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--radius);padding:10px 12px;font-size:12px;color:#92400e">
+                Ejemplo: saldo deudor $100.000 × 4,5% = <strong>$4.500 de interés</strong>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Día de vencimiento</label>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <input class="form-input" id="cfg_dia_vencimiento" type="number" min="1" max="28" style="width:80px">
+                  <span style="font-size:12px;color:var(--muted)">de cada mes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Columna derecha -->
+        <div class="config-section">
+
+          <!-- Datos del edificio -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Datos del Edificio</span>
+            </div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:14px">
+              <div class="form-row form-row-2">
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label">Nombre del Consorcio</label>
+                  <input class="form-input" id="cfg_nombre_edificio" type="text" placeholder="Galamar III">
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label">Dirección</label>
+                  <input class="form-input" id="cfg_direccion" type="text">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">CUIT</label>
+                  <input class="form-input" id="cfg_cuit" type="text" placeholder="30-00000000-0">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Administrador</label>
+                  <input class="form-input" id="cfg_administrador" type="text">
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label">Banco</label>
+                  <input class="form-input" id="cfg_banco" type="text">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Cuenta N°</label>
+                  <input class="form-input" id="cfg_cuenta_nro" type="text">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Alias</label>
+                  <input class="form-input" id="cfg_alias" type="text">
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label">CBU</label>
+                  <input class="form-input" id="cfg_cbu" type="text" style="font-family:monospace;font-size:12px">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saldo de caja actual -->
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Saldo en Caja</span>
+            </div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
+              <p style="font-size:11px;color:var(--muted)">Saldo actual de la cuenta bancaria del consorcio. Se actualiza automáticamente al cerrar cada liquidación.</p>
+              <div class="form-group">
+                <label class="form-label">Saldo actual ($)</label>
+                <div style="position:relative">
+                  <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted)">$</span>
+                  <input class="form-input" id="cfg_saldo_caja_actual" type="number" step="0.01" style="padding-left:22px">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unidades: gestión de cocheras -->
+          <div class="panel">
+            <div class="panel-header" style="justify-content:space-between">
+              <span class="panel-title">Cocheras por Unidad</span>
+              <span style="font-size:11px;color:var(--muted)">17 cocheras en total</span>
+            </div>
+            <div class="panel-body" style="padding:0">
+              <div style="max-height:300px;overflow-y:auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Unidad</th>
+                      <th>Cochera(s)</th>
+                      <th>Total expensa</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="tablaCocheras">
+                    <tr><td colspan="4" class="page-loader">Cargando...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal editar cocheras de una unidad -->
+<div class="modal-overlay" id="modalCochera">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalCocheraTitle">Cocheras de la unidad</h3>
+      <button class="modal-close" onclick="cerrarModalCochera()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cocheraUnidadId">
+      <p style="font-size:12px;color:var(--muted)">Ingresá los números de cochera separados por coma (ej: <code>3</code> o <code>14,15</code>). Dejá vacío si no tiene cochera.</p>
+      <div class="form-group">
+        <label class="form-label">Cocheras asignadas</label>
+        <input class="form-input" id="cocheraInput" placeholder="ej: 5  o  14, 15" style="font-family:monospace;font-size:16px;letter-spacing:2px">
+      </div>
+      <div id="cocheraPreview" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="cerrarModalCochera()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="guardarCochera()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/config.js"></script>
+<script>
+  let configData = {};
+  let unidades   = [];
+
+  async function init() {
+    try {
+      const cfgs = await SB.get('configuracion');
+      cfgs.forEach(c => { configData[c.clave] = c.valor; });
+
+      // Llenar campos
+      const campos = [
+        'nombre_edificio','direccion','cuit','banco','cuenta_nro','alias','cbu',
+        'precio_tipo_AD','precio_tipo_BC','precio_pb_local1','precio_pb_local2','precio_9piso',
+        'precio_cochera','tasa_interes','dia_vencimiento','administrador','saldo_caja_actual'
+      ];
+      campos.forEach(k => {
+        const el = document.getElementById('cfg_' + k);
+        if (el) el.value = configData[k] || '';
+      });
+
+      // Cargar unidades para la tabla de cocheras
+      unidades = await SB.get('unidades', 'order=orden.asc&activa=eq.true');
+      renderCocheras();
+      actualizarPreviewCocheras();
+
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // Preview precios con cochera
+  function actualizarPreviewCocheras() {
+    const precioCochera = parseFloat(document.getElementById('cfg_precio_cochera').value) || 1116;
+    const precios = {
+      AD:    parseFloat(document.getElementById('cfg_precio_tipo_AD').value)   || 48620,
+      BC:    parseFloat(document.getElementById('cfg_precio_tipo_BC').value)   || 40205,
+      local1: parseFloat(document.getElementById('cfg_precio_pb_local1').value) || 24310,
+      local2: parseFloat(document.getElementById('cfg_precio_pb_local2').value) || 61710,
+      '9piso': parseFloat(document.getElementById('cfg_precio_9piso').value)   || 98604,
+    };
+
+    const casos = [
+      { label: 'B/C sin cochera',  val: precios.BC },
+      { label: 'A/D sin cochera',  val: precios.AD },
+      { label: 'B/C + 1 cochera',  val: precios.BC + precioCochera },
+      { label: 'A/D + 1 cochera',  val: precios.AD + precioCochera },
+      { label: '9° piso + 2 coch', val: precios['9piso'] + precioCochera * 2 },
+    ];
+
+    document.getElementById('previewPrecios').innerHTML = casos.map(c =>
+      `<div class="precio-chip"><span style="color:var(--muted);font-size:10px">${c.label}</span><strong>${fmt$(c.val)}</strong></div>`
+    ).join('');
+  }
+
+  // Tabla de cocheras
+  function renderCocheras() {
+    const precioCoch = parseFloat(configData.precio_cochera || 1116);
+    const tbody = document.getElementById('tablaCocheras');
+    const conCochera = unidades.filter(u => u.cocheras.length > 0);
+
+    tbody.innerHTML = conCochera.map(u => {
+      const total = calcularExpensa(u, precioCoch);
+      const chips = u.cocheras.map(n => `<span class="cochera-chip">#${n}</span>`).join(' ');
+      return `<tr>
+        <td><strong>${u.codigo}</strong></td>
+        <td>${chips}</td>
+        <td class="num">${fmt$(total)}</td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="abrirModalCochera('${u.id}','${u.codigo}','${u.cocheras.join(',')}')">Editar</button>
+        </td>
+      </tr>`;
+    }).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Sin cocheras asignadas</td></tr>`;
+  }
+
+  // Modal cocheras
+  function abrirModalCochera(id, codigo, cocheras) {
+    document.getElementById('cocheraUnidadId').value = id;
+    document.getElementById('modalCocheraTitle').textContent = `Cocheras de ${codigo}`;
+    document.getElementById('cocheraInput').value = cocheras;
+    document.getElementById('modalCochera').classList.add('open');
+  }
+
+  function cerrarModalCochera() { document.getElementById('modalCochera').classList.remove('open'); }
+
+  async function guardarCochera() {
+    const id  = document.getElementById('cocheraUnidadId').value;
+    const raw = document.getElementById('cocheraInput').value;
+    const cocheras = raw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0);
+
+    try {
+      await SB.patch('unidades', id, { cocheras });
+      const u = unidades.find(x => x.id === id);
+      if (u) u.cocheras = cocheras;
+      cerrarModalCochera();
+      renderCocheras();
+      toast(`Cocheras actualizadas`, 'success');
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // Guardar toda la configuración
+  async function guardarTodo() {
+    const btn = document.getElementById('btnGuardar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+
+    const campos = [
+      'nombre_edificio','direccion','cuit','banco','cuenta_nro','alias','cbu',
+      'precio_tipo_AD','precio_tipo_BC','precio_pb_local1','precio_pb_local2','precio_9piso',
+      'precio_cochera','tasa_interes','dia_vencimiento','administrador','saldo_caja_actual'
+    ];
+
+    try {
+      for (const k of campos) {
+        const el = document.getElementById('cfg_' + k);
+        if (!el) continue;
+        await SB.upsert('configuracion',
+          { clave: k, valor: el.value },
+          'clave'
+        );
+        configData[k] = el.value;
+      }
+
+      // También actualizar precio_base en unidades
+      const mapaPrecios = {
+        AD:     parseFloat(document.getElementById('cfg_precio_tipo_AD').value),
+        BC:     parseFloat(document.getElementById('cfg_precio_tipo_BC').value),
+        '9piso': parseFloat(document.getElementById('cfg_precio_9piso').value),
+      };
+
+      for (const [tipo, precio] of Object.entries(mapaPrecios)) {
+        if (!isNaN(precio)) {
+          await SB.patchWhere('unidades', `tipo=eq.${tipo}`, { precio_base: precio });
+        }
+      }
+
+      // PB Locales por separado
+      const pbL1 = parseFloat(document.getElementById('cfg_precio_pb_local1').value);
+      const pbL2 = parseFloat(document.getElementById('cfg_precio_pb_local2').value);
+      if (!isNaN(pbL1)) await SB.patchWhere('unidades', 'codigo=eq.PB Local 1', { precio_base: pbL1 });
+      if (!isNaN(pbL2)) await SB.patchWhere('unidades', 'codigo=eq.PB Local 2', { precio_base: pbL2 });
+
+      actualizarPreviewCocheras();
+      toast('Configuración guardada correctamente', 'success');
+
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg> Guardar cambios`;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { cerrarModalCochera(); }
+  });
+
+  init();
+</script>
+</body>
+</html>

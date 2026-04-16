@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expensas · Galamar III</title>
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    /* Indicador de deuda grande */
+    .deuda-alert { background: #fff7ed; border: 1px solid #fed7aa; border-radius: var(--radius); padding: 10px 14px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #92400e; }
+
+    /* Filtro de búsqueda */
+    .search-bar { display: flex; align-items: center; gap: 12px; padding: 14px 32px; background: var(--white); border-bottom: 1px solid var(--border); }
+    .search-input { flex: 1; max-width: 320px; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); font-size: 13px; outline: none; }
+    .search-input:focus { border-color: var(--navy2); }
+    .filter-btns { display: flex; gap: 6px; }
+    .filter-btn { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); background: transparent; font-size: 11px; font-weight: 600; letter-spacing: .5px; cursor: pointer; transition: all .12s; color: var(--muted); }
+    .filter-btn.active, .filter-btn:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+    /* Fila de deudor resaltada */
+    tr.deudor td:first-child { border-left: 3px solid var(--red); }
+    tr.credito td:first-child { border-left: 3px solid var(--green); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <span class="topbar-title">Galamar III · Expensas</span>
+    </div>
+    <div class="topbar-right">
+      <select class="periodo-select" id="periodoSelect" onchange="cambiarPeriodo(this.value)"></select>
+      <span class="topbar-periodo" id="estadoLiq"></span>
+    </div>
+  </header>
+
+  <div class="shell">
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Principal</div>
+        <a class="nav-link active" href="index.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a class="nav-link" href="liquidacion.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8"/></svg>
+          Liquidación
+        </a>
+        <a class="nav-link" href="banco.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 10h18M7 15h1m4 0h1M3 6l9-3 9 3v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"/></svg>
+          Resumen Bancario
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gestión</div>
+        <a class="nav-link" href="historial.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Historial
+        </a>
+        <a class="nav-link" href="config.html">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          Configuración
+        </a>
+      </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <main class="main" id="main">
+
+      <!-- Header de página -->
+      <div class="page-header">
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageSubtitle">Cargando...</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <a href="banco.html" class="btn btn-outline btn-sm">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M16 12l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Subir extracto
+          </a>
+          <a href="liquidacion.html" class="btn btn-primary btn-sm">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 4v16m8-8H4"/></svg>
+            Nueva liquidación
+          </a>
+        </div>
+      </div>
+
+      <!-- Cards de resumen -->
+      <div class="cards cards-4" id="cardsSection">
+        <div class="card navy">
+          <div class="card-label">Saldo en Caja</div>
+          <div class="card-value" id="cardSaldoCaja">—</div>
+          <div class="card-sub">Al cierre del período</div>
+        </div>
+        <div class="card red">
+          <div class="card-label">Total Deuda</div>
+          <div class="card-value" id="cardDeudaTotal">—</div>
+          <div class="card-sub" id="cardDeudaSub">unidades con saldo pendiente</div>
+        </div>
+        <div class="card green">
+          <div class="card-label">Cobrado este mes</div>
+          <div class="card-value" id="cardCobrado">—</div>
+          <div class="card-sub" id="cardCobradoSub">—</div>
+        </div>
+        <div class="card gold">
+          <div class="card-label">Total Egresos</div>
+          <div class="card-value" id="cardEgresos">—</div>
+          <div class="card-sub">Gastos del período</div>
+        </div>
+      </div>
+
+      <!-- Barra de búsqueda y filtros -->
+      <div class="search-bar">
+        <input class="search-input" id="searchInput" type="text" placeholder="Buscar unidad o propietario..." oninput="filtrar()">
+        <div class="filter-btns">
+          <button class="filter-btn active" onclick="setFiltro('todos', this)">Todos</button>
+          <button class="filter-btn" onclick="setFiltro('deudores', this)">Con deuda</button>
+          <button class="filter-btn" onclick="setFiltro('al-dia', this)">Al día</button>
+          <button class="filter-btn" onclick="setFiltro('cochera', this)">Con cochera</button>
+        </div>
+      </div>
+
+      <!-- Tabla de unidades -->
+      <div class="section">
+        <div class="section-title">Detalle por unidad</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Unidad</th>
+                <th>Propietario</th>
+                <th>Cochera</th>
+                <th class="num">Expensa</th>
+                <th class="num">Saldo anterior</th>
+                <th class="num">Pagos</th>
+                <th class="num">Intereses</th>
+                <th class="num">Saldo final</th>
+                <th>Estado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tablaUnidades">
+              <tr><td colspan="10" class="page-loader">Cargando unidades...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal editar propietario -->
+<div class="modal-overlay" id="modalPropietario">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Editar unidad</h3>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group">
+        <label class="form-label">Unidad</label>
+        <input class="form-input" id="editCodigo" readonly style="background:#f5f5f5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre del propietario</label>
+        <input class="form-input" id="editPropietario" placeholder="Apellido, Nombre">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary btn-sm" onclick="guardarPropietario()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="js/config.js"></script>
+<script>
+  let unidades   = [];
+  let saldos     = {};
+  let config     = {};
+  let liquidacion = null;
+  let filtroActivo = 'todos';
+  let periodos   = [];
+
+  // ── Inicializar ────────────────────────────────────────────
+  async function init() {
+    try {
+      // Cargar config
+      const cfgs = await SB.get('configuracion');
+      cfgs.forEach(c => { config[c.clave] = c.valor; });
+
+      // Cargar todas las liquidaciones para el selector de período
+      const liqs = await SB.get('liquidaciones', 'order=periodo.desc');
+      periodos = liqs;
+
+      const select = document.getElementById('periodoSelect');
+      liqs.forEach((l, i) => {
+        const opt = document.createElement('option');
+        opt.value = l.periodo;
+        opt.textContent = fmtPeriodo(l.periodo).replace(/^\w/, c => c.toUpperCase());
+        if (i === 0) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      // Si no hay liquidaciones, mostrar estado vacío
+      if (!liqs.length) {
+        document.getElementById('pageSubtitle').textContent = 'Sin liquidaciones cargadas';
+        await cargarSoloUnidades();
+        return;
+      }
+
+      liquidacion = liqs[0];
+      await cargarPeriodo(liquidacion.periodo);
+
+    } catch (err) {
+      console.error(err);
+      toast('Error cargando datos: ' + err.message, 'error');
+    }
+  }
+
+  async function cambiarPeriodo(periodo) {
+    await cargarPeriodo(periodo);
+  }
+
+  async function cargarPeriodo(periodo) {
+    // Buscar liquidación
+    const liqs = await SB.get('liquidaciones', `periodo=eq.${periodo}`);
+    liquidacion = liqs[0] || null;
+
+    // Cargar unidades
+    unidades = await SB.get('unidades', 'order=orden.asc&activa=eq.true');
+
+    // Cargar saldos del período
+    const saldosData = await SB.get('saldos_mensuales', `periodo=eq.${periodo}&select=*,unidades(codigo)`);
+    saldos = {};
+    saldosData.forEach(s => { saldos[s.unidad_id] = s; });
+
+    // Actualizar UI
+    const titulo = fmtPeriodo(periodo);
+    document.getElementById('pageTitle').textContent = 'Dashboard';
+    document.getElementById('pageSubtitle').textContent =
+      `Período: ${titulo.replace(/^\w/, c => c.toUpperCase())} · ${unidades.length} unidades`;
+
+    if (liquidacion) {
+      const estado = liquidacion.estado === 'publicada' ? '✓ Publicada' : '⬤ Borrador';
+      document.getElementById('estadoLiq').textContent = estado;
+    }
+
+    actualizarCards();
+    renderTabla();
+  }
+
+  async function cargarSoloUnidades() {
+    unidades = await SB.get('unidades', 'order=orden.asc&activa=eq.true');
+    renderTabla();
+  }
+
+  // ── Cards de resumen ────────────────────────────────────────
+  function actualizarCards() {
+    const precioCochera = parseFloat(config.precio_cochera || 1116);
+    let deudaTotal = 0, cantDeudores = 0, totalPagos = 0, cantPagaron = 0;
+
+    unidades.forEach(u => {
+      const s = saldos[u.id];
+      if (s) {
+        if (s.saldo_final > 0)  { deudaTotal += s.saldo_final; cantDeudores++; }
+        if (s.pagos > 0)        { totalPagos += parseFloat(s.pagos); cantPagaron++; }
+      }
+    });
+
+    document.getElementById('cardSaldoCaja').textContent = fmt$(liquidacion?.saldo_caja_final || 0);
+    document.getElementById('cardDeudaTotal').textContent = fmt$(deudaTotal);
+    document.getElementById('cardDeudaSub').textContent = `${cantDeudores} unidad${cantDeudores !== 1 ? 'es' : ''} con saldo pendiente`;
+    document.getElementById('cardCobrado').textContent = fmt$(liquidacion?.total_ingresos || totalPagos);
+    document.getElementById('cardCobradoSub').textContent = `${cantPagaron} pagos registrados`;
+    document.getElementById('cardEgresos').textContent = fmt$(liquidacion?.total_egresos || 0);
+  }
+
+  // ── Tabla ────────────────────────────────────────────────────
+  function renderTabla() {
+    const tbody      = document.getElementById('tablaUnidades');
+    const q          = document.getElementById('searchInput').value.toLowerCase();
+    const precioCoch = parseFloat(config.precio_cochera || 1116);
+
+    const filtradas = unidades.filter(u => {
+      const s = saldos[u.id] || {};
+      const texto = `${u.codigo} ${u.propietario || ''}`.toLowerCase();
+
+      if (q && !texto.includes(q)) return false;
+
+      if (filtroActivo === 'deudores')  return (s.saldo_final || 0) > 0;
+      if (filtroActivo === 'al-dia')    return (s.saldo_final || 0) <= 0;
+      if (filtroActivo === 'cochera')   return u.cocheras.length > 0;
+      return true;
+    });
+
+    if (!filtradas.length) {
+      tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><p>No hay unidades con ese filtro</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtradas.map(u => {
+      const s           = saldos[u.id] || {};
+      const expensa     = calcularExpensa(u, precioCoch);
+      const saldoFinal  = parseFloat(s.saldo_final || 0);
+      const saldoAnt    = parseFloat(s.saldo_anterior || 0);
+      const pagos       = parseFloat(s.pagos || 0);
+      const punitorios  = parseFloat(s.punitorios || 0);
+
+      const rowClass = saldoFinal > 0 ? 'deudor' : saldoFinal < 0 ? 'credito' : '';
+
+      let estadoBadge;
+      if (!Object.keys(s).length) {
+        estadoBadge = `<span class="badge badge-muted">Sin datos</span>`;
+      } else if (saldoFinal <= 0) {
+        estadoBadge = `<span class="badge badge-green">Al día</span>`;
+      } else if (saldoFinal < expensa) {
+        estadoBadge = `<span class="badge badge-gold">Parcial</span>`;
+      } else {
+        estadoBadge = `<span class="badge badge-red">Adeuda</span>`;
+      }
+
+      const cocheras = u.cocheras.length
+        ? u.cocheras.map(n => `<span class="cochera-chip">#${n}</span>`).join('')
+        : '<span style="color:var(--muted);font-size:11px">—</span>';
+
+      return `<tr class="${rowClass}">
+        <td><strong>${u.codigo}</strong></td>
+        <td style="color:${u.propietario ? 'var(--text)' : 'var(--muted)'}">${u.propietario || 'Sin nombre'}</td>
+        <td>${cocheras}</td>
+        <td class="num">${fmt$(expensa)}</td>
+        <td class="num">${Object.keys(s).length ? fmt$(saldoAnt) : '—'}</td>
+        <td class="num" style="color:var(--green)">${pagos > 0 ? fmt$(pagos) : '—'}</td>
+        <td class="num" style="color:var(--amber)">${punitorios > 0 ? fmt$(punitorios) : '—'}</td>
+        <td class="num" style="font-weight:600;color:${saldoFinal > 0 ? 'var(--red)' : saldoFinal < 0 ? 'var(--green)' : 'var(--text)'}">
+          ${Object.keys(s).length ? fmt$(saldoFinal) : '—'}
+        </td>
+        <td>${estadoBadge}</td>
+        <td>
+          <button class="btn btn-outline btn-sm btn-icon" title="Editar propietario"
+            onclick="abrirModal('${u.id}', '${esc(u.codigo)}', '${esc(u.propietario || '')}')">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function filtrar() { renderTabla(); }
+
+  function setFiltro(f, btn) {
+    filtroActivo = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    filtrar();
+  }
+
+  // ── Modal propietario ────────────────────────────────────────
+  function abrirModal(id, codigo, propietario) {
+    document.getElementById('editId').value          = id;
+    document.getElementById('editCodigo').value      = codigo;
+    document.getElementById('editPropietario').value = propietario;
+    document.getElementById('modalTitle').textContent = `Editar ${codigo}`;
+    document.getElementById('modalPropietario').classList.add('open');
+    document.getElementById('editPropietario').focus();
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalPropietario').classList.remove('open');
+  }
+
+  async function guardarPropietario() {
+    const id          = document.getElementById('editId').value;
+    const propietario = document.getElementById('editPropietario').value.trim();
+
+    try {
+      await SB.patch('unidades', id, { propietario });
+      const u = unidades.find(x => x.id === id);
+      if (u) u.propietario = propietario;
+      cerrarModal();
+      renderTabla();
+      toast('Propietario actualizado', 'success');
+    } catch (err) {
+      toast('Error: ' + err.message, 'error');
+    }
+  }
+
+  // Enter para guardar en modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') cerrarModal();
+  });
+
+  function esc(s) {
+    return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  init();
+</script>
+</body>
+</html>

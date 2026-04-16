@@ -1,0 +1,13 @@
+{
+  "name": "expensas-galamar",
+  "version": "1.0.0",
+  "description": "Sistema de liquidación de expensas - Consorcio Galamar III",
+  "scripts": {
+    "dev": "cd worker && wrangler dev",
+    "deploy-worker": "cd worker && wrangler deploy",
+    "deploy": "cd worker && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
