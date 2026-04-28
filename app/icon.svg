@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo navy con esquinas redondeadas -->
+  <rect width="512" height="512" fill="#0f1b35" rx="96"/>
+  <!-- Línea dorada superior -->
+  <rect x="0" y="0" width="512" height="8" fill="#c9a558" rx="4"/>
+  <!-- Cuerpo del edificio -->
+  <rect x="96" y="120" width="320" height="320" fill="#1a2f5a" rx="6"/>
+  <!-- Techo / frente superior con acento dorado -->
+  <rect x="80" y="108" width="352" height="18" fill="#c9a558" rx="4"/>
+  <!-- Ventanas fila 1 -->
+  <rect x="124" y="152" width="52" height="42" fill="#c9a558" opacity="0.85" rx="4"/>
+  <rect x="230" y="152" width="52" height="42" fill="#c9a558" opacity="0.55" rx="4"/>
+  <rect x="336" y="152" width="52" height="42" fill="#c9a558" opacity="0.85" rx="4"/>
+  <!-- Ventanas fila 2 -->
+  <rect x="124" y="216" width="52" height="42" fill="#c9a558" opacity="0.55" rx="4"/>
+  <rect x="230" y="216" width="52" height="42" fill="#c9a558" opacity="0.85" rx="4"/>
+  <rect x="336" y="216" width="52" height="42" fill="#c9a558" opacity="0.55" rx="4"/>
+  <!-- Ventanas fila 3 -->
+  <rect x="124" y="280" width="52" height="42" fill="#c9a558" opacity="0.85" rx="4"/>
+  <rect x="230" y="280" width="52" height="42" fill="#c9a558" opacity="0.40" rx="4"/>
+  <rect x="336" y="280" width="52" height="42" fill="#c9a558" opacity="0.85" rx="4"/>
+  <!-- Puerta -->
+  <rect x="210" y="358" width="92" height="82" fill="#0f1b35" rx="6"/>
+  <rect x="218" y="366" width="34" height="66" fill="#1a2f5a" rx="3"/>
+  <rect x="260" y="366" width="34" height="66" fill="#1a2f5a" rx="3"/>
+  <!-- Línea dorada inferior del edificio -->
+  <rect x="96" y="434" width="320" height="6" fill="#c9a558"/>
+  <!-- Texto G3 -->
+  <text x="256" y="490" font-family="Georgia, serif" font-size="28" font-weight="bold"
+        fill="#c9a558" text-anchor="middle" letter-spacing="6">GALAMAR III</text>
+</svg>

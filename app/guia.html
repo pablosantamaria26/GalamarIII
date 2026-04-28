@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guía de uso · Galamar III</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1b35">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    .guia-content { max-width: 780px; margin: 0 auto; padding: 28px 24px 60px; }
+    .guia-content h1 { font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .guia-content .subtitle { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+    .section { margin-bottom: 36px; }
+    .section h2 { font-size: 14px; font-weight: 700; color: var(--navy2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 2px solid var(--gold); display: inline-block; }
+    .steps { display: flex; flex-direction: column; gap: 12px; }
+    .step { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num { min-width: 28px; height: 28px; border-radius: 50%; background: var(--navy); color: var(--gold); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .step-body h3 { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
+    .step-body p  { font-size: 12px; color: var(--text); line-height: 1.55; margin: 0; }
+    .step-body code { background: var(--cream2); padding: 1px 5px; border-radius: 3px; font-size: 11px; color: var(--navy2); }
+    .tip { background: #fffbf0; border: 1px solid #fde68a; border-radius: var(--radius); padding: 12px 16px; font-size: 12px; color: #78350f; margin-top: 12px; }
+    .tip strong { color: #92400e; }
+    .nav-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .nav-pill { padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--navy); text-decoration: none; transition: all .12s; }
+    .nav-pill:hover { background: var(--navy); color: var(--white); border-color: var(--navy); }
+    .icon-pill { margin-right: 4px; }
+    table.ref { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table.ref th { background: var(--navy); color: var(--white); padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    table.ref td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    table.ref tr:last-child td { border-bottom: none; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="topbar-brand">
+      <img src="icon.svg" style="width:32px;height:32px;border-radius:6px;" alt="">
+      <span class="topbar-title">Galamar III · Expensas</span>
+    </div>
+    <nav class="topbar-nav">
+      <a href="index.html">Dashboard</a>
+      <a href="liquidacion.html">Liquidación</a>
+      <a href="banco.html">Resumen Bancario</a>
+      <a href="config.html">Configuración</a>
+      <a href="historial.html">Historial</a>
+      <a href="guia.html" class="active">Guía</a>
+    </nav>
+  </header>
+
+  <main class="shell">
+    <div class="guia-content">
+
+      <h1>Guía rápida de uso</h1>
+      <p class="subtitle">Todo lo que necesitás saber para liquidar las expensas de Galamar III.</p>
+
+      <!-- Accesos rápidos -->
+      <div class="nav-pills">
+        <a href="#inicio" class="nav-pill">Inicio del mes</a>
+        <a href="#banco" class="nav-pill">Cargar extracto</a>
+        <a href="#liquidacion" class="nav-pill">Editar liquidación</a>
+        <a href="#pdf" class="nav-pill">Generar PDF</a>
+        <a href="#config" class="nav-pill">Configuración</a>
+        <a href="#historial" class="nav-pill">Historial</a>
+      </div>
+
+      <!-- FLUJO MENSUAL -->
+      <div class="section" id="inicio">
+        <h2>Flujo mensual</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h3>Creá la liquidación del mes</h3>
+              <p>Desde <strong>Liquidación</strong>, seleccioná el período (ej. mayo 2026) con el selector de arriba y hacé clic en <strong>"Crear nueva liquidación"</strong>. El sistema copia automáticamente los saldos pendientes del mes anterior.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h3>Cargá el extracto bancario</h3>
+              <p>En <strong>Resumen Bancario</strong>, subí el archivo CSV o XLSX que descargás desde Banco Galicia Home Banking. El sistema identifica automáticamente a qué unidad pertenece cada depósito usando la IA y patrones aprendidos.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h3>Revisá los pagos no reconocidos</h3>
+              <p>Si hay depósitos que la IA no pudo identificar, aparecen resaltados en naranja. Asignales la unidad correspondiente con el desplegable y el sistema aprende para el mes siguiente.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h3>Ingresá los gastos del edificio</h3>
+              <p>En <strong>Liquidación → Panel lateral</strong>, hacé clic en <strong>"+ Gasto"</strong> y completá proveedor, descripción y monto. El total se distribuye automáticamente entre las 35 unidades según sus coeficientes.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">5</div>
+            <div class="step-body">
+              <h3>Revisá punitorios y ajustes</h3>
+              <p>Los punitorios (4.5%/mes sobre saldo anterior) se calculan automáticamente. Podés editarlos celda a celda si necesitás hacer un descuento o corrección para alguna unidad puntual.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">6</div>
+            <div class="step-body">
+              <h3>Generá el PDF y publicá</h3>
+              <p>Hacé clic en <strong>"Generar PDF"</strong> para descargar la liquidación completa en 3 páginas. Cuando todo esté correcto, hacé clic en <strong>"Publicar"</strong> para cerrar el mes.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXTRACTO BANCARIO -->
+      <div class="section" id="banco">
+        <h2>Cargar extracto bancario</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h3>Descargar el extracto</h3>
+              <p>Ingresá a Banco Galicia Home Banking → Cuentas → Movimientos → Exportar. Podés descargar en formato <code>.csv</code> o <code>.xlsx</code>. Ambos formatos son compatibles.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h3>Subir el archivo</h3>
+              <p>Arrastrá el archivo a la zona de carga o hacé clic en ella para buscarlo. El sistema procesa el archivo en segundos.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h3>Revisar asignaciones</h3>
+              <p>Las filas en <span style="color:#16a34a;font-weight:600">verde</span> fueron reconocidas automáticamente. Las filas en <span style="color:#d97706;font-weight:600">naranja</span> necesitan asignación manual: usá el desplegable para elegir la unidad.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h3>Guardar</h3>
+              <p>Hacé clic en <strong>"Guardar pagos"</strong>. Los pagos se asocian a la liquidación del período seleccionado y los patrones nuevos se guardan para reconocimiento futuro.</p>
+            </div>
+          </div>
+        </div>
+        <div class="tip">
+          <strong>Tip:</strong> Si un propietario paga con transferencia desde una cuenta nueva, la primera vez aparecerá como no reconocido. Una vez que lo asignás manualmente, el sistema lo recuerda para los meses siguientes.
+        </div>
+      </div>
+
+      <!-- LIQUIDACIÓN -->
+      <div class="section" id="liquidacion">
+        <h2>Editar la liquidación</h2>
+        <p style="font-size:12px;color:var(--text);margin-bottom:14px;">En la pantalla de Liquidación tenés una tabla con las 35 unidades. Cada fila tiene celdas editables:</p>
+        <table class="ref">
+          <thead><tr><th>Campo</th><th>Qué es</th><th>Editable</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Saldo anterior</strong></td><td>Deuda o crédito arrastrado del mes previo</td><td>Sí — clic en la celda</td></tr>
+            <tr><td><strong>Expensa</strong></td><td>Precio base + cocheras × precio cochera</td><td>No (calculado)</td></tr>
+            <tr><td><strong>Pagos</strong></td><td>Total acreditado según extracto bancario</td><td>Sí — ajuste manual</td></tr>
+            <tr><td><strong>Gastos part.</strong></td><td>Gasto particular de esa unidad (ej. reparación)</td><td>Sí</td></tr>
+            <tr><td><strong>Punitorios</strong></td><td>Interés sobre saldo anterior vencido (4.5%/mes)</td><td>Sí — para aplicar descuentos</td></tr>
+            <tr><td><strong>Saldo nuevo</strong></td><td>Resultado final del período</td><td>No (calculado)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PDF -->
+      <div class="section" id="pdf">
+        <h2>Generar el PDF</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h3>Verificá los datos</h3>
+              <p>Revisá que los totales de gastos y el saldo de caja sean correctos antes de generar.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h3>Hacé clic en "Generar PDF"</h3>
+              <p>Se descarga automáticamente un archivo <code>liquidacion-AAAA-MM.pdf</code> con 3 páginas: resumen del edificio, tabla de unidades y detalle de gastos.</p>
+            </div>
+          </div>
+        </div>
+        <div class="tip">
+          <strong>Tip:</strong> El PDF tiene el mismo formato que el Excel que usabas antes. Podés imprimirlo directamente o mandarlo por mail a los propietarios.
+        </div>
+      </div>
+
+      <!-- CONFIGURACIÓN -->
+      <div class="section" id="config">
+        <h2>Configuración</h2>
+        <table class="ref">
+          <thead><tr><th>Opción</th><th>Para qué sirve</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Precio por tipo de unidad</strong></td><td>Ajustá los montos de A/D, B/C, Locales y 9° piso al inicio de cada período</td></tr>
+            <tr><td><strong>Precio cochera</strong></td><td>Monto adicional que se suma por cada cochera de la unidad</td></tr>
+            <tr><td><strong>Tasa de punitorios</strong></td><td>Porcentaje mensual que se aplica sobre saldos deudores (default 4.5%)</td></tr>
+            <tr><td><strong>Cocheras por unidad</strong></td><td>Editá qué cocheras tiene asignada cada unidad si cambia una asignación</td></tr>
+            <tr><td><strong>Datos del edificio</strong></td><td>CBU, CUIT, domicilio legal — aparecen en el PDF generado</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- HISTORIAL -->
+      <div class="section" id="historial">
+        <h2>Historial</h2>
+        <p style="font-size:12px;color:var(--text);margin-bottom:10px;">En <strong>Historial</strong> podés ver todas las liquidaciones cerradas. Hacé clic en una liquidación para ver su resumen: deudores, pagos recibidos y gráfico de egresos.</p>
+        <p style="font-size:12px;color:var(--text);">Desde el panel de detalle también podés:</p>
+        <ul style="font-size:12px;color:var(--text);margin-top:8px;padding-left:18px;line-height:1.8;">
+          <li>Ver el historial de saldos de una unidad específica (clic en su fila)</li>
+          <li>Despublicar una liquidación para poder editarla de nuevo</li>
+          <li>Eliminar una liquidación errónea</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
