@@ -39,6 +39,7 @@ const BANK_CHARGE_PATTERNS = [
   'Imp. Cre. Ley','IMP. CRE. LEY',
   'Imp. Ing. Brutos','IMP. ING. BRUTOS',
   'Percep. Iva','PERCEP. IVA',
+  'Iva','IVA',
   'Comision Servicio','Comision Mantenimiento','COMISION MANTENIMIENTO',
   'Com. Movimientos','COM. MOVIMIENTOS',
   'Com. Gestion Transf',

@@ -411,7 +411,9 @@
   }
 
   // ── Parser XLSX en el navegador (SheetJS CDN) ─────────────────
-  // Captura ley1 (col 5) y ley2 (col 6) por separado
+  // Detecta automáticamente dos formatos:
+  //   · Galicia 16 col (extracto directo): deb=3,cred=4, ley1=10 (titular), ley2=12 (ref)
+  //   · Resumen 7 col (procesado histórico): deb=2,cred=3, ley1=4 (titular), ley2=5 (unidad)
   async function parseXLSXenNavegador(file) {
     if (!window.XLSX) {
       await new Promise((res, rej) => {
@@ -435,17 +437,44 @@
       }
     }
 
+    // Detectar formato según cantidad de columnas del header
+    const hdr = rows[headerIdx];
+    let colDeb, colCred, colLey1, colLey2, colOrigen;
+
+    if (hdr.length >= 15 && String(hdr[10]).toLowerCase().includes('leyenda')) {
+      // ── Formato Galicia 16 columnas (extracto CC directo) ──
+      colDeb    = 3;   // Débitos
+      colCred   = 4;   // Créditos
+      colOrigen = 2;   // Origen
+      colLey1   = 10;  // Leyendas Adicionales 1 (nombre titular / empresa)
+      colLey2   = 12;  // Leyendas Adicionales 3 (referencia transferencia)
+    } else if (hdr.length >= 5 && String(hdr[4]).toLowerCase().includes('leyenda')) {
+      // ── Formato resumen 7 columnas (histórico procesado) ──
+      colDeb    = 2;   // Débitos
+      colCred   = 3;   // Créditos
+      colOrigen = null;
+      colLey1   = 4;   // Leyendas Adicionales 1 (nombre titular)
+      colLey2   = 5;   // Anotación manual (código unidad)
+    } else {
+      // ── Fallback: asumir 16 col o formato desconocido ──
+      colDeb    = 3;
+      colCred   = 4;
+      colOrigen = 2;
+      colLey1   = 10;
+      colLey2   = 12;
+    }
+
     const txs = [];
     for (let i = headerIdx + 1; i < rows.length; i++) {
       const r = rows[i];
       if (!r.some(c => c !== '')) continue;
       const fecha  = parseFecha(r[0]);
       const desc   = String(r[1] || '').trim();
-      const origen = String(r[2] || '').trim();
-      const debito  = parseMonto(r[3]);
-      const credito = parseMonto(r[4]);
-      const ley1    = String(r[5] || '').trim();  // nombre titular / servicio
-      const ley2    = String(r[6] || '').trim();  // código unidad / etiqueta
+      const origen = colOrigen !== null ? String(r[colOrigen] || '').trim() : '';
+      const debito  = parseMonto(r[colDeb]);
+      const credito = parseMonto(r[colCred]);
+      const ley1    = String(r[colLey1] || '').trim();
+      const ley2    = String(r[colLey2] || '').trim();
       if (!fecha && !desc) continue;
       txs.push({ fecha, descripcion: desc, origen, debito, credito, ley1, ley2 });
     }
