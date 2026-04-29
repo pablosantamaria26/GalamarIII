@@ -187,54 +187,98 @@
 
       <!-- PASO 3: Revisar transacciones -->
       <div id="panelRevisar" style="display:none">
-        <div style="padding:16px 32px;display:flex;align-items:center;justify-content:space-between;background:var(--white);border-bottom:1px solid var(--border)">
-          <div style="display:flex;gap:16px">
-            <span style="font-size:12px;color:var(--green);font-weight:600" id="infoReconocidos">0 reconocidos</span>
+        <!-- Barra superior con totales y botón guardar -->
+        <div style="padding:14px 32px;display:flex;align-items:center;justify-content:space-between;background:var(--white);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <span style="font-size:12px;color:var(--green);font-weight:600" id="infoReconocidos">0 pagos</span>
             <span style="font-size:12px;color:var(--amber);font-weight:600" id="infoSinAsignar">0 sin asignar</span>
-            <span style="font-size:12px;color:var(--muted)" id="infoTotal">0 créditos totales</span>
+            <span style="font-size:12px;color:var(--navy);font-weight:600" id="infoBancarios">Gastos banc. $0</span>
+            <span style="font-size:12px;color:var(--muted)" id="infoEdificio"></span>
           </div>
           <button class="btn btn-primary btn-sm" onclick="guardarTransacciones()">
             <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>
             Confirmar y guardar
           </button>
         </div>
-        <div class="section">
-          <div class="section-title">Créditos identificados (pagos recibidos)</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Descripción</th>
-                  <th>Origen / Leyenda</th>
-                  <th class="num">Monto</th>
-                  <th>Unidad asignada</th>
-                  <th>Confianza</th>
-                  <th>Fuente</th>
-                </tr>
-              </thead>
-              <tbody id="tablaTransacciones"></tbody>
-            </table>
+
+        <div class="section" style="display:flex;flex-direction:column;gap:24px">
+
+          <!-- Gastos bancarios card -->
+          <div id="cardBancarios" style="display:none">
+            <div class="section-title">Gastos bancarios (cargos del banco)</div>
+            <div class="resumen-box">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:var(--navy)">Total cargos bancarios Galicia</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">Impuestos, comisiones, IVA y cargos por movimientos</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:20px;font-weight:700;color:var(--red)" id="totalBancarios">$0</div>
+                  <button class="btn btn-outline btn-sm" style="margin-top:6px;font-size:11px" onclick="agregarGastoBancario()">
+                    + Agregar como gasto
+                  </button>
+                </div>
+              </div>
+              <div id="detalleBancarios" style="display:flex;flex-direction:column;gap:2px"></div>
+            </div>
           </div>
 
-          <!-- Otros movimientos (débitos, etc.) -->
-          <div style="margin-top:24px">
-            <div class="section-title">Otros movimientos (débitos / gastos bancarios)</div>
+          <!-- Gastos del edificio cards -->
+          <div id="cardEdificio" style="display:none">
+            <div class="section-title">Gastos del edificio detectados</div>
+            <div id="listaEdificio" style="display:flex;flex-wrap:wrap;gap:12px"></div>
+          </div>
+
+          <!-- Ingresos especiales -->
+          <div id="cardIngresosEsp" style="display:none">
+            <div class="section-title">Ingresos especiales (portería, alquiler PB, luz)</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="num">Monto</th></tr></thead>
+                <tbody id="tablaIngresosEsp"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Pagos de unidades -->
+          <div>
+            <div class="section-title" id="tituloUnidades">Pagos de unidades</div>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>Fecha</th>
-                    <th>Descripción</th>
-                    <th class="num">Débito</th>
-                    <th class="num">Crédito</th>
-                    <th class="num">Saldo</th>
+                    <th>Titular</th>
+                    <th class="num">Monto</th>
+                    <th>Unidad</th>
+                    <th>Confianza</th>
+                    <th>Fuente</th>
                   </tr>
                 </thead>
-                <tbody id="tablaOtros"></tbody>
+                <tbody id="tablaTransacciones"></tbody>
               </table>
             </div>
           </div>
+
+          <!-- No reconocidos -->
+          <div id="cardNoReconocidos" style="display:none">
+            <div class="section-title" style="color:var(--amber)">Sin identificar — asignar manualmente</div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Titular (Ley1)</th>
+                    <th>Ref. (Ley2)</th>
+                    <th class="num">Monto</th>
+                    <th>Asignar unidad</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaNoReconocidos"></tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -247,11 +291,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script>
-  let archivoActual  = null;
-  let transacciones  = [];
-  let unidades       = [];
-  let patrones       = [];
-  let liquidacionId  = null;
+  let archivoActual      = null;
+  let unidades           = [];
+  let patrones_pago      = [];
+  let liquidacionId      = null;
+  let _analisisResult    = null;   // resultado completo del worker
+  let _gastoBancarioAgregado = false;
 
   // ── Init ─────────────────────────────────────────────────────
   async function init() {
@@ -263,7 +308,7 @@
 
     unidades = await SB.get('unidades', 'order=orden.asc&activa=eq.true');
     const pat = await SB.get('patrones_pago', 'order=ocurrencias.desc');
-    patrones  = pat.map(p => ({
+    patrones_pago = pat.map(p => ({
       ...p,
       unidad_codigo: unidades.find(u => u.id === p.unidad_id)?.codigo || ''
     }));
@@ -290,16 +335,15 @@
     document.getElementById('fileUpload').value = '';
   }
 
-  // ── Procesar: parse + Gemini ─────────────────────────────────
+  // ── Procesar: parse + Análisis IA ────────────────────────────
   async function procesarArchivo() {
     if (!archivoActual) return;
-
     setStep(2);
     document.getElementById('panelUpload').style.display     = 'none';
     document.getElementById('panelProcesando').style.display = '';
 
-    const mes  = document.getElementById('uploadMes').value;
-    const anio = document.getElementById('uploadAnio').value;
+    const mes    = document.getElementById('uploadMes').value;
+    const anio   = document.getElementById('uploadAnio').value;
     const periodo = periodoISO(anio, mes);
 
     try {
@@ -310,53 +354,40 @@
       const ext = archivoActual.name.toLowerCase().split('.').pop();
 
       if (ext === 'csv') {
-        // CSV → Worker
         const form = new FormData();
         form.append('archivo', archivoActual);
         const res = await fetch(`${WORKER_URL}/banco/parse`, {
-          method: 'POST',
-          headers: { 'X-Expensas-Key': APP_SECRET },
-          body: form
+          method: 'POST', headers: { 'X-Expensas-Key': APP_SECRET }, body: form
         });
         const data = await res.json();
         if (!data.ok) throw new Error(data.error);
         txParsed = data.transacciones;
       } else {
-        // XLSX → parsear en el navegador con SheetJS CDN
         txParsed = await parseXLSXenNavegador(archivoActual);
       }
 
-      document.getElementById('procesandoMsg').textContent = `${txParsed.length} transacciones encontradas. Consultando IA...`;
-      document.getElementById('procesandoSub').textContent = 'Gemini está identificando los pagos por unidad';
+      document.getElementById('procesandoMsg').textContent = `${txParsed.length} movimientos encontrados. Clasificando con IA...`;
+      document.getElementById('procesandoSub').textContent = 'Identificando pagos, gastos del edificio y cargos bancarios';
 
-      // Analizar con patrones + Gemini (via Worker)
       const resAnalisis = await fetch(`${WORKER_URL}/banco/analizar`, {
         method: 'POST',
         headers: { 'X-Expensas-Key': APP_SECRET, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transacciones: txParsed, unidades, patrones })
+        body: JSON.stringify({ transacciones: txParsed, unidades, patrones_pago })
       });
       const analisis = await resAnalisis.json();
       if (!analisis.ok) throw new Error(analisis.error);
 
-      transacciones = txParsed;
-
-      // Merge resultados de análisis en créditos
-      const creditosAnalizados = analisis.resultados || [];
+      _analisisResult = analisis;
+      _gastoBancarioAgregado = false;
 
       // Obtener o crear liquidación para el período
       const liqs = await SB.get('liquidaciones', `periodo=eq.${periodo}`);
-      if (liqs.length) {
-        liquidacionId = liqs[0].id;
-      } else {
-        const nueva = await SB.post('liquidaciones', { periodo, estado: 'borrador' });
-        liquidacionId = nueva[0].id;
-      }
+      liquidacionId = liqs.length ? liqs[0].id : (await SB.post('liquidaciones', { periodo, estado: 'borrador' }))[0].id;
 
       setStep(3);
       document.getElementById('panelProcesando').style.display = 'none';
       document.getElementById('panelRevisar').style.display    = '';
-
-      renderTransacciones(creditosAnalizados, txParsed.filter(t => !(parseFloat(t.credito || 0) > 1000)));
+      renderResultado(analisis);
 
     } catch (err) {
       console.error(err);
@@ -368,8 +399,8 @@
   }
 
   // ── Parser XLSX en el navegador (SheetJS CDN) ─────────────────
+  // Captura ley1 (col 5) y ley2 (col 6) por separado
   async function parseXLSXenNavegador(file) {
-    // Cargar SheetJS dinámicamente
     if (!window.XLSX) {
       await new Promise((res, rej) => {
         const s = document.createElement('script');
@@ -378,151 +409,187 @@
         document.head.appendChild(s);
       });
     }
-
     const buffer = await file.arrayBuffer();
-    const wb     = XLSX.read(buffer, { type: 'array' });
-    const ws     = wb.Sheets[wb.SheetNames[0]];
-    const rows   = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+    const wb  = XLSX.read(buffer, { type: 'array' });
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
 
-    // Detectar header
-    let headerIdx = -1;
+    // Detectar fila de header
+    let headerIdx = 0;
     for (let i = 0; i < Math.min(rows.length, 15); i++) {
-      const row = rows[i].join(' ').toLowerCase();
-      if (row.includes('fecha') && (row.includes('debito') || row.includes('credito') || row.includes('descripci'))) {
-        headerIdx = i;
-        break;
+      const r = rows[i].join(' ').toLowerCase();
+      if (r.includes('fecha') && (r.includes('debito') || r.includes('credito') || r.includes('descripci'))) {
+        headerIdx = i; break;
       }
-    }
-
-    if (headerIdx < 0) {
-      // Intentar heurística: buscar primera fila con fecha
-      headerIdx = 0;
     }
 
     const txs = [];
     for (let i = headerIdx + 1; i < rows.length; i++) {
       const r = rows[i];
       if (!r.some(c => c !== '')) continue;
-
       const fecha  = parseFecha(r[0]);
       const desc   = String(r[1] || '').trim();
       const origen = String(r[2] || '').trim();
-      const debito = parseMonto(r[3]);
+      const debito  = parseMonto(r[3]);
       const credito = parseMonto(r[4]);
-      const leyenda = String(r[5] || '').trim();
-      const saldo   = parseMonto(r[6]);
-
+      const ley1    = String(r[5] || '').trim();  // nombre titular / servicio
+      const ley2    = String(r[6] || '').trim();  // código unidad / etiqueta
       if (!fecha && !desc) continue;
-      txs.push({ fecha, descripcion: desc, origen, debito, credito, leyenda, saldo_banco: saldo });
+      txs.push({ fecha, descripcion: desc, origen, debito, credito, ley1, ley2 });
     }
-
     return txs;
   }
 
-  function parseFecha(val) {
-    if (!val) return null;
-    if (typeof val === 'number') {
-      // Excel serial date
-      const d = new Date((val - 25569) * 86400 * 1000);
-      return d.toISOString().slice(0, 10);
+  // ── Render resultado del análisis ────────────────────────────
+  function renderResultado(a) {
+    const pagos    = a.pagos_unidades || [];
+    const bancarios = a.gastos_bancarios || { total: 0, detalle: [] };
+    const edificio = a.gastos_edificio || {};
+    const ingSp    = a.ingresos_especiales || [];
+    const noRec    = (a.no_reconocidos || []).filter(r => r.tipo === 'credito');
+
+    // Barra superior
+    document.getElementById('infoReconocidos').textContent = `${pagos.length} pagos`;
+    document.getElementById('infoSinAsignar').textContent  = `${noRec.length} sin asignar`;
+    document.getElementById('infoBancarios').textContent   = `Gastos banc. ${fmt$(bancarios.total)}`;
+    const catEdificio = Object.keys(edificio);
+    document.getElementById('infoEdificio').textContent    = catEdificio.length
+      ? catEdificio.map(c => `${c}: ${fmt$(edificio[c].total)}`).join(' · ')
+      : '';
+
+    // ── Gastos bancarios ──────────────────────────────────────
+    if (bancarios.total > 0) {
+      document.getElementById('cardBancarios').style.display = '';
+      document.getElementById('totalBancarios').textContent  = fmt$(bancarios.total);
+      // Agrupar detalle por descripción
+      const agrupado = {};
+      for (const d of bancarios.detalle) {
+        const k = d.descripcion;
+        if (!agrupado[k]) agrupado[k] = 0;
+        agrupado[k] += d.monto;
+      }
+      document.getElementById('detalleBancarios').innerHTML = Object.entries(agrupado)
+        .map(([k,v]) => `<div class="resumen-row"><span>${esc(k)}</span><span style="color:var(--red);font-weight:600">${fmt$(v)}</span></div>`)
+        .join('');
     }
-    const s = String(val).trim();
-    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-    if (m) {
-      const y = m[3].length === 2 ? '20' + m[3] : m[3];
-      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+
+    // ── Gastos del edificio ───────────────────────────────────
+    if (catEdificio.length > 0) {
+      document.getElementById('cardEdificio').style.display = '';
+      document.getElementById('listaEdificio').innerHTML = catEdificio.map(cat => {
+        const g = edificio[cat];
+        const colorMap = { CESOP: '#1e40af', SEGURO: '#7c3aed', LIMPIEZA: '#065f46', PROVEEDOR: '#92400e' };
+        const color = colorMap[cat] || 'var(--navy)';
+        return `<div class="resumen-box" style="min-width:220px;flex:1;border-left:3px solid ${color}">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:${color};margin-bottom:6px">${esc(cat)}</div>
+          <div style="font-size:18px;font-weight:700;color:var(--navy);margin-bottom:4px">${fmt$(g.total)}</div>
+          <div style="font-size:11px;color:var(--muted)">${esc(g.etiqueta || cat)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">${g.items.length} movimiento${g.items.length !== 1 ? 's' : ''}</div>
+        </div>`;
+      }).join('');
     }
-    return s;
+
+    // ── Ingresos especiales ───────────────────────────────────
+    if (ingSp.length > 0) {
+      document.getElementById('cardIngresosEsp').style.display = '';
+      document.getElementById('tablaIngresosEsp').innerHTML = ingSp
+        .map(t => `<tr>
+          <td style="font-size:12px">${t.fecha||'—'}</td>
+          <td style="font-size:12px">${esc(t.descripcion||'')}</td>
+          <td><span class="badge badge-gold" style="font-size:10px">${esc(t.ley2||'')}</span></td>
+          <td class="num" style="color:var(--green);font-weight:600">${fmt$(t.monto)}</td>
+        </tr>`).join('');
+    }
+
+    // ── Pagos de unidades ─────────────────────────────────────
+    document.getElementById('tituloUnidades').textContent =
+      `Pagos de unidades (${pagos.length} reconocidos)`;
+
+    document.getElementById('tablaTransacciones').innerHTML = pagos.length
+      ? pagos.map((t, i) => {
+          const conf = parseFloat(t.confianza || 0);
+          const confColor = conf >= 0.95 ? 'var(--green)' : conf >= 0.80 ? 'var(--navy2)' : 'var(--amber)';
+          const fuenteBadge = t.fuente === 'gemini' ? 'badge-gold' : t.fuente === 'leyenda_directa' ? 'badge-green' : 'badge-muted';
+          const fuenteLabel = t.fuente === 'gemini' ? 'IA' : t.fuente === 'leyenda_directa' ? 'Leyenda' : t.fuente === 'patron' ? 'Patrón' : 'Manual';
+          return `<tr class="tx-row-confirmed">
+            <td style="font-size:12px">${t.fecha||'—'}</td>
+            <td style="font-size:12px;max-width:180px" title="${esc(t.nombre||t.descripcion)}">${esc(t.nombre||t.descripcion)}</td>
+            <td class="num" style="color:var(--green);font-weight:600">${fmt$(t.monto)}</td>
+            <td><strong style="color:var(--navy)">${esc(t.unidad_codigo)}</strong></td>
+            <td style="font-size:11px;color:${confColor}">${Math.round(conf*100)}%</td>
+            <td><span class="badge ${fuenteBadge}" style="font-size:10px">${fuenteLabel}</span></td>
+          </tr>`;
+        }).join('')
+      : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No se encontraron pagos de unidades</td></tr>`;
+
+    // ── No reconocidos ────────────────────────────────────────
+    if (noRec.length > 0) {
+      document.getElementById('cardNoReconocidos').style.display = '';
+      document.getElementById('tablaNoReconocidos').innerHTML = noRec.map((t, i) => {
+        const opciones = `<option value="">— Sin asignar —</option>` +
+          unidades.map(u => `<option value="${u.codigo}">${u.codigo}${u.propietario ? ' · '+u.propietario : ''}</option>`).join('');
+        return `<tr class="tx-row-unrecognized" id="norec_${i}">
+          <td style="font-size:12px">${t.fecha||'—'}</td>
+          <td style="font-size:12px;max-width:160px" title="${esc(t.ley1||t.descripcion)}">${esc(t.ley1||t.descripcion)}</td>
+          <td style="font-size:11px;color:var(--muted)">${esc(t.ley2||'—')}</td>
+          <td class="num" style="color:var(--green);font-weight:600">${fmt$(t.credito)}</td>
+          <td>
+            <select class="assign-select" id="selNoRec_${i}" onchange="asignarNoRec(${i}, this.value)">
+              ${opciones}
+            </select>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Guardar refs para el save
+    window._pagosParaGuardar   = pagos;
+    window._noRecParaGuardar   = noRec;
+    window._ingEspParaGuardar  = ingSp;
   }
 
-  function parseMonto(val) {
-    if (!val && val !== 0) return 0;
-    const s = String(val).replace(/[^\d,.\-]/g, '').replace(',', '.');
-    return parseFloat(s) || 0;
-  }
-
-  // ── Render tabla de transacciones ────────────────────────────
-  function renderTransacciones(creditos, otros) {
-    const reconocidos   = creditos.filter(t => t.unidad_id || t.unidad_codigo);
-    const sinAsignar    = creditos.filter(t => !t.unidad_id && !t.unidad_codigo);
-
-    document.getElementById('infoReconocidos').textContent = `${reconocidos.length} reconocidos`;
-    document.getElementById('infoSinAsignar').textContent  = `${sinAsignar.length} sin asignar`;
-    document.getElementById('infoTotal').textContent       = `${creditos.length} créditos totales`;
-
-    const tbody = document.getElementById('tablaTransacciones');
-    tbody.innerHTML = creditos.map((t, i) => {
-      const asignada = t.unidad_codigo || '';
-      const confianza = parseFloat(t.confianza || 0);
-      const confClass = confianza >= 0.8 ? 'conf-high' : confianza >= 0.5 ? 'conf-medium' : 'conf-low';
-      const confText  = confianza >= 0.8 ? 'Alta' : confianza >= 0.5 ? 'Media' : confianza > 0 ? 'Baja' : '—';
-      const rowClass  = asignada ? 'tx-row-confirmed' : 'tx-row-unrecognized';
-
-      const opciones = `<option value="">— Sin asignar —</option>` +
-        unidades.map(u => `<option value="${u.codigo}" ${u.codigo === asignada ? 'selected' : ''}>${u.codigo}${u.propietario ? ' · ' + u.propietario : ''}</option>`).join('');
-
-      return `<tr class="${rowClass}" id="txrow_${i}">
-        <td style="font-size:12px">${t.fecha || '—'}</td>
-        <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${esc(t.descripcion)}">${esc(t.descripcion)}</td>
-        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:11px;color:var(--muted)" title="${esc(t.leyenda || t.origen)}">${esc(t.leyenda || t.origen)}</td>
-        <td class="num" style="color:var(--green);font-weight:600">${fmt$(t.credito)}</td>
-        <td>
-          <select class="assign-select" id="sel_${i}" onchange="reasignar(${i}, this.value)">
-            ${opciones}
-          </select>
-        </td>
-        <td>
-          <span class="${asignada ? confClass : ''}" style="font-size:12px">${asignada ? confText : '—'}</span>
-          ${t.razon ? `<div style="font-size:10px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis" title="${esc(t.razon)}">${esc(t.razon)}</div>` : ''}
-        </td>
-        <td><span class="badge ${t.fuente === 'gemini' ? 'badge-gold' : t.fuente === 'patron' ? 'badge-green' : 'badge-muted'}" style="font-size:10px">${t.fuente === 'gemini' ? 'IA' : t.fuente === 'patron' ? 'Patrón' : 'Manual'}</span></td>
-      </tr>`;
-    }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">No se encontraron créditos mayores a $1.000</td></tr>`;
-
-    // Tabla de otros movimientos
-    const tbodyOtros = document.getElementById('tablaOtros');
-    tbodyOtros.innerHTML = otros.slice(0, 50).map(t =>
-      `<tr>
-        <td style="font-size:12px">${t.fecha || '—'}</td>
-        <td style="font-size:12px">${esc(t.descripcion)}</td>
-        <td class="num" style="color:var(--red)">${t.debito > 0 ? fmt$(t.debito) : '—'}</td>
-        <td class="num" style="color:var(--green)">${t.credito > 0 ? fmt$(t.credito) : '—'}</td>
-        <td class="num" style="font-size:11px;color:var(--muted)">${t.saldo_banco > 0 ? fmt$(t.saldo_banco) : '—'}</td>
-      </tr>`
-    ).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px">Sin otros movimientos</td></tr>`;
-
-    // Guardar array de créditos para confirmar luego
-    window._creditosParaGuardar = creditos;
-  }
-
-  function reasignar(idx, codigo) {
-    if (window._creditosParaGuardar) {
-      const unidad = unidades.find(u => u.codigo === codigo);
-      window._creditosParaGuardar[idx].unidad_codigo = codigo;
-      window._creditosParaGuardar[idx].unidad_id     = unidad?.id || null;
-      window._creditosParaGuardar[idx].fuente        = 'usuario';
-      window._creditosParaGuardar[idx].confianza     = codigo ? 1 : 0;
+  function asignarNoRec(idx, codigo) {
+    const unidad = unidades.find(u => u.codigo === codigo);
+    const t = window._noRecParaGuardar[idx];
+    t.unidad_codigo = codigo;
+    t.unidad_id     = unidad?.id || null;
+    t.fuente        = 'usuario';
+    t.confianza     = codigo ? 1 : 0;
+    // Moverlo a pagos si fue asignado
+    if (codigo) {
+      const row = document.getElementById(`norec_${idx}`);
+      if (row) row.style.background = '#f0fdf4';
     }
+  }
+
+  function agregarGastoBancario() {
+    _gastoBancarioAgregado = true;
+    const btn = document.querySelector('[onclick="agregarGastoBancario()"]');
+    if (btn) { btn.textContent = '✓ Se agregará como gasto'; btn.disabled = true; }
+    toast('Se agregará el total de gastos bancarios como gasto al guardar', 'success');
   }
 
   // ── Guardar en Supabase ─────────────────────────────────────
   async function guardarTransacciones() {
     if (!liquidacionId) { toast('No hay liquidación activa', 'error'); return; }
 
-    const creditos = window._creditosParaGuardar || [];
+    const pagos    = window._pagosParaGuardar   || [];
+    const noRec    = window._noRecParaGuardar   || [];
+    const todos    = [...pagos, ...noRec.filter(t => t.unidad_id)];
     let guardados = 0, patronesNuevos = 0;
 
     try {
-      for (const t of creditos) {
+      // Guardar pagos de unidades
+      for (const t of todos) {
         await SB.post('transacciones_banco', {
           liquidacion_id: liquidacionId,
           fecha:          t.fecha,
-          descripcion:    t.descripcion,
-          origen:         t.origen,
-          credito:        t.credito,
+          descripcion:    t.descripcion || '',
+          origen:         t.origen || '',
+          credito:        t.monto || t.credito || 0,
           debito:         0,
-          leyenda:        t.leyenda || '',
-          saldo_banco:    t.saldo_banco || 0,
+          leyenda:        t.nombre || t.ley1 || '',
+          saldo_banco:    0,
           unidad_id:      t.unidad_id || null,
           confianza:      t.confianza || 0,
           confirmada:     true,
@@ -530,17 +597,17 @@
         });
         guardados++;
 
-        // Si fue asignado manualmente, guardar/actualizar patrón
-        if (t.fuente === 'usuario' && t.unidad_id && t.descripcion) {
-          const palabras = t.descripcion.split(' ').filter(p => p.length > 3);
-          for (const palabra of palabras.slice(0, 3)) {
+        // Aprender patrón si fue asignado manualmente con ley1 (nombre del titular)
+        if (t.fuente === 'usuario' && t.unidad_id && (t.nombre || t.ley1)) {
+          const nombreCompleto = (t.nombre || t.ley1 || '').trim();
+          if (nombreCompleto.length >= 5) {
             try {
               await SB.upsert('patrones_pago', {
-                patron:    palabra.toUpperCase(),
-                unidad_id: t.unidad_id,
+                patron:     nombreCompleto,
+                unidad_id:  t.unidad_id,
                 ocurrencias: 1,
-                ultima_vez: t.fecha || new Date().toISOString().slice(0,10),
-                creado_por: 'usuario'
+                ultima_vez:  t.fecha || new Date().toISOString().slice(0,10),
+                creado_por:  'usuario'
               }, 'patron,unidad_id');
               patronesNuevos++;
             } catch (_) {}
@@ -548,10 +615,29 @@
         }
       }
 
-      setStep(4);
-      toast(`${guardados} transacciones guardadas. ${patronesNuevos} patrones aprendidos`, 'success');
+      // Guardar gastos bancarios como gasto si el usuario lo pidió
+      if (_gastoBancarioAgregado && _analisisResult?.gastos_bancarios?.total > 0) {
+        const gb = _analisisResult.gastos_bancarios;
+        const desglose = Object.entries(
+          gb.detalle.reduce((acc, d) => {
+            acc[d.descripcion] = (acc[d.descripcion]||0) + d.monto;
+            return acc;
+          }, {})
+        ).map(([k,v]) => `${k}: $${v.toFixed(2)}`).join(' | ');
 
-      setTimeout(() => { window.location.href = 'liquidacion.html'; }, 2000);
+        await SB.post('gastos', {
+          liquidacion_id: liquidacionId,
+          proveedor:      'Banco Galicia',
+          descripcion:    `Débitos bancarios: ${desglose.substring(0, 200)}`,
+          monto:          gb.total,
+          categoria:      'GASTOS_BANCARIOS'
+        });
+      }
+
+      setStep(4);
+      const msg = `${guardados} pagos guardados${patronesNuevos ? `, ${patronesNuevos} patrones aprendidos` : ''}${_gastoBancarioAgregado ? ', gastos bancarios agregados' : ''}`;
+      toast(msg, 'success');
+      setTimeout(() => { window.location.href = 'liquidacion.html'; }, 2200);
 
     } catch (err) {
       toast('Error guardando: ' + err.message, 'error');
@@ -566,6 +652,26 @@
       if (i < n) el.classList.add('done');
       else if (i === n) el.classList.add('active');
     });
+  }
+
+  function parseFecha(val) {
+    if (!val) return null;
+    if (typeof val === 'number') {
+      const d = new Date((val - 25569) * 86400 * 1000);
+      return d.toISOString().slice(0, 10);
+    }
+    const s = String(val).trim();
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+    if (m) {
+      const y = m[3].length === 2 ? '20' + m[3] : m[3];
+      return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    }
+    return s;
+  }
+
+  function parseMonto(val) {
+    if (!val && val !== 0) return 0;
+    return parseFloat(String(val).replace(/[^\d,.\-]/g, '').replace(',', '.')) || 0;
   }
 
   function fmtSize(b) {
