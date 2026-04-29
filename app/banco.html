@@ -380,9 +380,21 @@
       _analisisResult = analisis;
       _gastoBancarioAgregado = false;
 
-      // Obtener o crear liquidación para el período
+      // Obtener o crear liquidación para el período (upsert para evitar 409)
       const liqs = await SB.get('liquidaciones', `periodo=eq.${periodo}`);
-      liquidacionId = liqs.length ? liqs[0].id : (await SB.post('liquidaciones', { periodo, estado: 'borrador' }))[0].id;
+      if (liqs.length) {
+        liquidacionId = liqs[0].id;
+      } else {
+        try {
+          const nueva = await SB.post('liquidaciones', { periodo, estado: 'borrador' });
+          liquidacionId = nueva[0].id;
+        } catch (e) {
+          // 409 = ya existe (race condition) — buscar de nuevo
+          const liqs2 = await SB.get('liquidaciones', `periodo=eq.${periodo}`);
+          if (!liqs2.length) throw e;
+          liquidacionId = liqs2[0].id;
+        }
+      }
 
       setStep(3);
       document.getElementById('panelProcesando').style.display = 'none';
