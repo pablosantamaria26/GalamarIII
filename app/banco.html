@@ -250,7 +250,7 @@
                     <th>Fecha</th>
                     <th>Titular</th>
                     <th class="num">Monto</th>
-                    <th>Unidad</th>
+                    <th>Unidad <span style="font-weight:400;color:var(--muted);font-size:10px">✏ editable</span></th>
                     <th>Confianza</th>
                     <th>Fuente</th>
                   </tr>
@@ -546,19 +546,34 @@
     document.getElementById('tituloUnidades').textContent =
       `Pagos de unidades (${pagos.length} reconocidos)`;
 
+    // Opciones de unidades reutilizables para los selects
+    const opcionesUnidades =
+      `<option value="">— Sin asignar —</option>` +
+      unidades.map(u =>
+        `<option value="${esc(u.codigo)}">${esc(u.codigo)}${u.propietario ? ' · '+esc(u.propietario) : ''}</option>`
+      ).join('');
+
     document.getElementById('tablaTransacciones').innerHTML = pagos.length
       ? pagos.map((t, i) => {
           const conf = parseFloat(t.confianza || 0);
           const confColor = conf >= 0.95 ? 'var(--green)' : conf >= 0.80 ? 'var(--navy2)' : 'var(--amber)';
           const fuenteBadge = t.fuente === 'gemini' ? 'badge-gold' : t.fuente === 'leyenda_directa' ? 'badge-green' : 'badge-muted';
           const fuenteLabel = t.fuente === 'gemini' ? 'IA' : t.fuente === 'leyenda_directa' ? 'Leyenda' : t.fuente === 'patron' ? 'Patrón' : 'Manual';
-          return `<tr class="tx-row-confirmed">
+          // Construir opciones con la unidad detectada pre-seleccionada
+          const opts = `<option value="">— Sin asignar —</option>` +
+            unidades.map(u =>
+              `<option value="${esc(u.codigo)}" ${u.codigo === t.unidad_codigo ? 'selected' : ''}>${esc(u.codigo)}${u.propietario ? ' · '+esc(u.propietario) : ''}</option>`
+            ).join('');
+          return `<tr class="tx-row-confirmed" id="pago_${i}">
             <td style="font-size:12px">${t.fecha||'—'}</td>
             <td style="font-size:12px;max-width:180px" title="${esc(t.nombre||t.descripcion)}">${esc(t.nombre||t.descripcion)}</td>
             <td class="num" style="color:var(--green);font-weight:600">${fmt$(t.monto)}</td>
-            <td><strong style="color:var(--navy)">${esc(t.unidad_codigo)}</strong></td>
-            <td style="font-size:11px;color:${confColor}">${Math.round(conf*100)}%</td>
-            <td><span class="badge ${fuenteBadge}" style="font-size:10px">${fuenteLabel}</span></td>
+            <td>
+              <select class="assign-select" id="selPago_${i}" onchange="reasignarPago(${i}, this.value)">${opts}</select>
+              <span id="editBadge_${i}" style="display:none;font-size:10px;color:var(--amber);font-weight:700;margin-left:4px">✏ editado</span>
+            </td>
+            <td style="font-size:11px;color:${confColor}" id="confPago_${i}">${Math.round(conf*100)}%</td>
+            <td><span class="badge ${fuenteBadge}" id="fuentePago_${i}" style="font-size:10px">${fuenteLabel}</span></td>
           </tr>`;
         }).join('')
       : `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No se encontraron pagos de unidades</td></tr>`;
@@ -596,11 +611,30 @@
     t.unidad_id     = unidad?.id || null;
     t.fuente        = 'usuario';
     t.confianza     = codigo ? 1 : 0;
-    // Moverlo a pagos si fue asignado
     if (codigo) {
       const row = document.getElementById(`norec_${idx}`);
       if (row) row.style.background = '#f0fdf4';
     }
+  }
+
+  // Reasignar un pago ya reconocido (permite corregir errores de la IA)
+  function reasignarPago(idx, nuevoCodigo) {
+    const t = window._pagosParaGuardar[idx];
+    if (!t) return;
+    const unidad = unidades.find(u => u.codigo === nuevoCodigo);
+    t.unidad_codigo = nuevoCodigo;
+    t.unidad_id     = unidad?.id || null;
+    t.fuente        = 'usuario';
+    t.confianza     = nuevoCodigo ? 1 : 0;
+    // Feedback visual
+    const badge = document.getElementById(`editBadge_${idx}`);
+    if (badge) badge.style.display = nuevoCodigo ? 'inline' : 'none';
+    const confEl = document.getElementById(`confPago_${idx}`);
+    if (confEl) { confEl.textContent = nuevoCodigo ? '100%' : '0%'; confEl.style.color = nuevoCodigo ? 'var(--green)' : 'var(--amber)'; }
+    const fuenteEl = document.getElementById(`fuentePago_${idx}`);
+    if (fuenteEl) { fuenteEl.className = 'badge badge-gold'; fuenteEl.textContent = 'Editado'; }
+    const row = document.getElementById(`pago_${idx}`);
+    if (row) row.style.background = nuevoCodigo ? '#f0fdf4' : '#fff7ed';
   }
 
   function agregarGastoBancario() {
@@ -616,7 +650,8 @@
 
     const pagos    = window._pagosParaGuardar   || [];
     const noRec    = window._noRecParaGuardar   || [];
-    const todos    = [...pagos, ...noRec.filter(t => t.unidad_id)];
+    // Incluir solo pagos con unidad asignada (el usuario puede haber quitado la asignación)
+    const todos    = [...pagos.filter(t => t.unidad_id), ...noRec.filter(t => t.unidad_id)];
     let guardados = 0, patronesNuevos = 0;
 
     try {
